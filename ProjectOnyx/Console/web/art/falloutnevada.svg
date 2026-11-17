@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3a14a"/><stop offset=".55" stop-color="#a8562a"/><stop offset="1" stop-color="#2a130a"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<circle cx="172" cy="80" r="40" fill="#fff0c8" opacity=".25"/><path d="M160 150 Q156 116 166 104 Q150 96 160 78 Q176 62 192 78 Q204 96 186 104 Q196 116 190 150 Z" fill="#ffe2a0" opacity=".55"/><path d="M0 196 L0 150 L40 136 L80 150 L130 128 L190 150 L240 140 L240 196 Z" fill="#5a2a14"/><g transform="translate(70 110)"><circle r="30" fill="#2a130a"/><path d="M0 0 L-13 -22.5 A26 26 0 0 1 13 -22.5 Z M0 0 L26 0 A26 26 0 0 1 13 22.5 Z M0 0 L-13 22.5 A26 26 0 0 1 -26 0 Z" fill="#ffd23f"/><circle r="11" fill="#2a130a"/><circle r="7" fill="#ffd23f"/></g>
+<path d="M0 196 H240 V240 H0 Z" fill="#2a130a"/><path d="M0 196 H240" stroke="#ffe2a0" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">NEVADA</text></svg>

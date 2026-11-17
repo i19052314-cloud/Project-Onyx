@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4ab4ff"/><stop offset=".55" stop-color="#2a6ad0"/><stop offset="1" stop-color="#0a1a3a"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<path d="M0 196 L0 160 L60 150 L120 164 L180 148 L240 158 L240 196 Z" fill="#12306a"/><g fill="#7af0ff" opacity=".9"><path d="M40 160 L50 120 L60 160 Z"/><path d="M56 162 L64 132 L72 162 Z"/><path d="M190 156 L200 112 L210 156 Z"/></g><g transform="translate(120 96)"><path d="M-36 6 Q-30 -30 4 -28 Q30 -26 34 -4 Q38 20 10 26 Q-24 30 -36 6 Z" fill="#dff4ff"/><path d="M30 -16 L52 -20 L34 -6 Z" fill="#ffb23a"/><circle cx="18" cy="-14" r="4" fill="#0a1a3a"/><path d="M-30 -2 Q-56 -24 -44 6 Q-50 20 -26 14 Z" fill="#a8dcff"/></g>
+<path d="M0 196 H240 V240 H0 Z" fill="#0a1a3a"/><path d="M0 196 H240" stroke="#dff4ff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">TWEETCRAFT</text></svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 240" width="240" height="240">
+      <defs><linearGradient id="t3bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a2d7a"/><stop offset="1" stop-color="#070d2c"/></linearGradient>
+        <radialGradient id="t3b"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#9ef"/><stop offset="1" stop-color="#9ef" stop-opacity="0"/></radialGradient></defs>
+      <rect width="240" height="240" fill="url(#t3bg)"/>
+      <path d="M120 10 V230" stroke="#6f8cff" stroke-width="4" stroke-dasharray="14 14" opacity=".7"/>
+      <rect x="22" y="72" width="16" height="84" rx="8" fill="#6fe0ff"/><rect x="202" y="104" width="16" height="84" rx="8" fill="#ff6fa8"/>
+      <circle cx="150" cy="96" r="40" fill="url(#t3b)" opacity=".8"/><circle cx="150" cy="96" r="11" fill="#fff"/>
+      <text x="82" y="62" font-family="Bahnschrift,Segoe UI" font-size="38" font-weight="700" fill="#cfe0ff" opacity=".85" text-anchor="middle">7</text>
+      <text x="158" y="62" font-family="Bahnschrift,Segoe UI" font-size="38" font-weight="700" fill="#cfe0ff" opacity=".85" text-anchor="middle">5</text>
+    </svg>

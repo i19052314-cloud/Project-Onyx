@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1a6a"/><stop offset=".55" stop-color="#1a0a3a"/><stop offset="1" stop-color="#05020f"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<path d="M40 0 L0 196 H90 Z" fill="#ff5ad8" opacity=".18"/><path d="M200 0 L150 196 H240 Z" fill="#5ad8ff" opacity=".18"/><rect x="0" y="160" width="240" height="36" fill="#2a1240"/><path d="M0 160 H240" stroke="#ff5ad8" stroke-width="3"/><g transform="translate(120 108)"><rect x="-3" y="-10" width="6" height="58" fill="#c8c8d8"/><rect x="-10" y="-40" width="20" height="34" rx="10" fill="#3a3a4a" stroke="#c8c8d8" stroke-width="3"/><path d="M-8 -30 H8 M-8 -22 H8 M-8 -14 H8" stroke="#c8c8d8" stroke-width="1.5"/></g><g fill="#ffe14a"><path d="M50 60 l3 7 7 1 -5 5 1 7 -6 -4 -6 4 1 -7 -5 -5 7 -1 Z"/><path d="M190 76 l3 7 7 1 -5 5 1 7 -6 -4 -6 4 1 -7 -5 -5 7 -1 Z"/></g>
+<path d="M0 196 H240 V240 H0 Z" fill="#05020f"/><path d="M0 196 H240" stroke="#ff5ad8" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="15" letter-spacing="2" fill="#fff">LIGHTNERS LIVE</text></svg>

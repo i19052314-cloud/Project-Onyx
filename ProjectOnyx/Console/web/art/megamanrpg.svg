@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a8aff"/><stop offset=".55" stop-color="#1a4ac8"/><stop offset="1" stop-color="#081640"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<g stroke="#7af0ff" stroke-opacity=".25" stroke-width="2"><path d="M0 40 H240"/><path d="M0 64 H240"/><path d="M0 88 H240"/><path d="M0 112 H240"/><path d="M0 136 H240"/><path d="M0 160 H240"/><path d="M0 184 H240"/></g><g transform="translate(80 116)"><rect x="-10" y="-12" width="70" height="28" rx="14" fill="#2aa8ff" stroke="#0a2a6a" stroke-width="4"/><circle cx="60" cy="2" r="16" fill="#0a2a6a"/><circle cx="60" cy="2" r="9" fill="#7af0ff"/></g><circle cx="176" cy="118" r="20" fill="#dffcff"/><circle cx="176" cy="118" r="32" fill="#7af0ff" opacity=".35"/><path d="M196 118 H236" stroke="#7af0ff" stroke-width="10" stroke-linecap="round" opacity=".6"/>
+<path d="M0 196 H240 V240 H0 Z" fill="#081640"/><path d="M0 196 H240" stroke="#7af0ff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="17" letter-spacing="2" fill="#fff">MEGA MAN RPG</text></svg>

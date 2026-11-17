@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8a1a0f"/><stop offset=".55" stop-color="#3d0805"/><stop offset="1" stop-color="#0a0202"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<path d="M0 196 Q30 120 60 196 Q90 110 120 196 Q150 100 180 196 Q210 126 240 196 Z" fill="#ff5a1f" opacity=".55"/><g transform="translate(120 104)"><path d="M-30 -24 Q-58 -56 -40 -78 Q-34 -46 -16 -36 Z M30 -24 Q58 -56 40 -78 Q34 -46 16 -36 Z" fill="#e8d8c0"/><path d="M-30 -30 Q0 -50 30 -30 L26 10 Q0 30 -26 10 Z" fill="#e8d8c0"/><path d="M-20 -14 L-6 -10 L-12 0 Z M20 -14 L6 -10 L12 0 Z" fill="#ff3a14"/><path d="M-14 14 H14 M-8 10 V20 M0 10 V20 M8 10 V20" stroke="#3d0805" stroke-width="3"/></g>
+<path d="M0 196 H240 V240 H0 Z" fill="#0a0202"/><path d="M0 196 H240" stroke="#ff8a3a" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="17" letter-spacing="2" fill="#fff">D2 SURVIVORS</text></svg>

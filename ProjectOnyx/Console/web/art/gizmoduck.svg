@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5ad0ff"/><stop offset=".55" stop-color="#2a7ad8"/><stop offset="1" stop-color="#0a1a40"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<g fill="#0e2a5a"><rect x="0" y="120" width="40" height="76"/><rect x="44" y="96" width="34" height="100"/><rect x="170" y="104" width="30" height="92"/><rect x="204" y="130" width="40" height="66"/></g><g transform="translate(120 112)"><circle cx="0" cy="44" r="30" fill="#2a2f3a"/><circle cx="0" cy="44" r="20" fill="#5a6070"/><circle cx="0" cy="44" r="6" fill="#ffe14a"/><rect x="-20" y="-30" width="40" height="56" rx="12" fill="#e8edf5"/><rect x="-20" y="-6" width="40" height="8" fill="#d83a3a"/><circle cx="0" cy="-44" r="18" fill="#e8edf5"/><rect x="-16" y="-50" width="32" height="10" rx="5" fill="#3a8aff"/></g><path d="M40 170 H80 M30 156 H70" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/>
+<path d="M0 196 H240 V240 H0 Z" fill="#0a1a40"/><path d="M0 196 H240" stroke="#ffe14a" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">GIZMODUCK</text></svg>

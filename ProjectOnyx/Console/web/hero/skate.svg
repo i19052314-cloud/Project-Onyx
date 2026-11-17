@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 800" width="1920" height="800" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d7bff"/><stop offset=".55" stop-color="#8a4dff"/><stop offset="1" stop-color="#150a33"/></linearGradient>
+<filter id="b"><feGaussianBlur stdDeviation="20"/></filter></defs>
+<rect width="1920" height="800" fill="url(#a)"/>
+<circle cx="1460" cy="250" r="190" fill="#ffe08a" filter="url(#b)" opacity=".7"/><circle cx="1460" cy="250" r="160" fill="#ffe9a8"/>
+<path d="M880 560 L1180 560 L1420 400 L1420 800 L880 800 Z" fill="#12082b"/><path d="M1180 560 L1420 400" stroke="#cdbdff" stroke-width="8"/>
+<path d="M1420 640 H1920 V800 H1420 Z" fill="#0b0518"/><path d="M1420 640 H1920" stroke="#cdbdff" stroke-opacity=".6" stroke-width="6"/>
+<g transform="translate(1300 330) rotate(-18) scale(2.2)"><rect x="-90" y="-8" width="180" height="16" rx="8" fill="#ffd23f"/><rect x="-90" y="-8" width="180" height="5" rx="2.5" fill="#fff" opacity=".45"/><circle cx="-58" cy="22" r="12" fill="#fff"/><circle cx="58" cy="22" r="12" fill="#fff"/><circle cx="-58" cy="22" r="5" fill="#150a33"/><circle cx="58" cy="22" r="5" fill="#150a33"/></g>
+<path d="M980 330 H1130 M930 380 H1100 M1010 430 H1150" stroke="#fff" stroke-opacity=".4" stroke-width="8" stroke-linecap="round"/>
+<g fill="#fff"><circle cx="1180" cy="120" r="3"/><circle cx="1700" cy="170" r="3.5"/><circle cx="1010" cy="70" r="2.5"/><circle cx="1830" cy="330" r="3"/></g></svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 240" width="240" height="240">
+      <defs><linearGradient id="t4bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff7a3d"/><stop offset=".55" stop-color="#d63a6a"/><stop offset="1" stop-color="#3a1458"/></linearGradient></defs>
+      <rect width="240" height="240" fill="url(#t4bg)"/>
+      <circle cx="150" cy="110" r="52" fill="#ffd36b" opacity=".92"/>
+      <g fill="#2a0f45"><rect x="0" y="120" width="34" height="120"/><rect x="40" y="90" width="40" height="150"/><rect x="86" y="132" width="30" height="108"/><rect x="122" y="104" width="44" height="136"/><rect x="172" y="140" width="30" height="100"/><rect x="206" y="112" width="40" height="128"/></g>
+      <g fill="#ffcf6b" opacity=".85"><rect x="48" y="104" width="6" height="8"/><rect x="62" y="104" width="6" height="8"/><rect x="130" y="120" width="6" height="8"/><rect x="146" y="120" width="6" height="8"/><rect x="48" y="130" width="6" height="8"/></g>
+      <rect x="0" y="196" width="240" height="44" fill="#1a0830"/>
+      <g fill="#fff"><circle cx="86" cy="150" r="9"/><path d="M80 160 L93 160 L96 184 L88 184 L86 172 L82 184 L74 184 Z"/><path d="M76 164 L66 158" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M95 164 L106 172" stroke="#fff" stroke-width="5" stroke-linecap="round"/></g>
+      <path d="M20 170 H56 M10 182 H52" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/>
+    </svg>

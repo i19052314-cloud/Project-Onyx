@@ -1,0 +1,2460 @@
+{
+  "console": "GameStation 5",
+  "games": [
+    {
+      "id": "hoops",
+      "title": "Hoops Legends '27",
+      "titleLines": [
+        "Hoops",
+        "Legends"
+      ],
+      "tag": "Sports  ·  1 player",
+      "short": "Hoops Legends",
+      "art": "hoops",
+      "hero": "hoops",
+      "scoreUnit": "pts",
+      "news": "Hoops '27: roster update",
+      "challenge": {
+        "text": "Play for 30 minutes",
+        "stat": "seconds",
+        "goal": 1800,
+        "reward": "Bragging rights"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          61
+        ],
+        [
+          "LilTrey",
+          48
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "tipoff",
+          "name": "Tip-Off",
+          "desc": "Play a game",
+          "tier": "bronze",
+          "auto": {
+            "type": "plays",
+            "value": 1
+          }
+        },
+        {
+          "id": "warm",
+          "name": "Warming Up",
+          "desc": "Play for 10 minutes",
+          "tier": "bronze",
+          "auto": {
+            "type": "seconds",
+            "value": 600
+          }
+        },
+        {
+          "id": "win1",
+          "name": "First W",
+          "desc": "Win a game",
+          "tier": "silver",
+          "auto": {
+            "type": "wins",
+            "value": 1
+          }
+        },
+        {
+          "id": "hot50",
+          "name": "Heat Check",
+          "desc": "Score 50 points in a game",
+          "tier": "silver",
+          "auto": {
+            "type": "best",
+            "value": 50
+          }
+        },
+        {
+          "id": "allstar",
+          "name": "All-Star",
+          "desc": "Play for an hour",
+          "tier": "gold",
+          "auto": {
+            "type": "seconds",
+            "value": 3600
+          }
+        }
+      ]
+    },
+    {
+      "id": "skate",
+      "title": "Skate",
+      "titleLines": [
+        "Skate"
+      ],
+      "tag": "Sports  ·  1 player  ·  Online",
+      "short": "Skate",
+      "art": "skate",
+      "hero": "skate",
+      "scoreUnit": "",
+      "news": "Skate: new spots to session",
+      "challenge": {
+        "text": "Skate for 30 minutes",
+        "stat": "seconds",
+        "goal": 1800,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "First Push",
+          "desc": "Play Skate",
+          "tier": "bronze",
+          "auto": {
+            "type": "plays",
+            "value": 1
+          }
+        },
+        {
+          "id": "warm",
+          "name": "Warming Up",
+          "desc": "Skate for 10 minutes",
+          "tier": "bronze",
+          "auto": {
+            "type": "seconds",
+            "value": 600
+          }
+        },
+        {
+          "id": "session",
+          "name": "Long Session",
+          "desc": "Skate for an hour",
+          "tier": "silver",
+          "auto": {
+            "type": "seconds",
+            "value": 3600
+          }
+        }
+      ]
+    },
+    {
+      "id": "zombies",
+      "title": "Zombies",
+      "titleLines": [
+        "Zombies"
+      ],
+      "tag": "Shooter  ·  1-8 players  ·  Online",
+      "short": "Zombies",
+      "art": "zombies",
+      "hero": "zombies",
+      "scoreUnit": "",
+      "news": "Zombies: new round, same horde",
+      "challenge": {
+        "text": "Start 10 runs",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Fresh Meat",
+          "desc": "Start Zombies",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Still Breathing",
+          "desc": "Start 5 runs",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Last Stand",
+          "desc": "Start 10 runs",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "blockdrop",
+      "title": "Block Drop",
+      "titleLines": [
+        "Block",
+        "Drop"
+      ],
+      "tag": "Puzzle  ·  1 player",
+      "short": "Block Drop",
+      "art": "blockdrop",
+      "hero": "blockdrop",
+      "scoreUnit": "",
+      "news": "Block Drop: Season 2 is live",
+      "challenge": {
+        "text": "Clear 40 lines",
+        "stat": "lines",
+        "goal": 40,
+        "reward": "$500 cash"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          41880
+        ],
+        [
+          "LilTrey",
+          36540
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "lines1",
+          "name": "First Lines",
+          "desc": "Clear a line",
+          "tier": "bronze",
+          "auto": {
+            "type": "lines",
+            "value": 1
+          }
+        },
+        {
+          "id": "lvl5",
+          "name": "Picking Up Speed",
+          "desc": "Reach level 5",
+          "tier": "bronze",
+          "auto": {
+            "type": "levelmax",
+            "value": 5
+          }
+        },
+        {
+          "id": "tetris",
+          "name": "Line Master",
+          "desc": "Clear 4 lines at once",
+          "tier": "silver"
+        },
+        {
+          "id": "score20k",
+          "name": "Twenty Thousand",
+          "desc": "Score 20,000",
+          "tier": "silver",
+          "auto": {
+            "type": "best",
+            "value": 20000
+          }
+        },
+        {
+          "id": "lvl10",
+          "name": "Top Gear",
+          "desc": "Reach level 10",
+          "tier": "gold",
+          "auto": {
+            "type": "levelmax",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "serpent",
+      "title": "Serpent",
+      "titleLines": [
+        "Serpent"
+      ],
+      "tag": "Arcade  ·  1 player",
+      "short": "Serpent",
+      "art": "serpent",
+      "hero": "serpent",
+      "scoreUnit": "",
+      "news": "Serpent: new neon board",
+      "challenge": {
+        "text": "Eat 60 apples",
+        "stat": "apples",
+        "goal": 60,
+        "reward": "$250 cash"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          410
+        ],
+        [
+          "LilTrey",
+          330
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "apple10",
+          "name": "Snack Time",
+          "desc": "Eat 10 apples in total",
+          "tier": "bronze",
+          "auto": {
+            "type": "apples",
+            "value": 10
+          }
+        },
+        {
+          "id": "len15",
+          "name": "Growing Up",
+          "desc": "Reach length 15",
+          "tier": "bronze",
+          "auto": {
+            "type": "maxlen",
+            "value": 15
+          }
+        },
+        {
+          "id": "score200",
+          "name": "Two Hundred",
+          "desc": "Score 200",
+          "tier": "silver",
+          "auto": {
+            "type": "best",
+            "value": 200
+          }
+        },
+        {
+          "id": "len30",
+          "name": "Python",
+          "desc": "Reach length 30",
+          "tier": "gold",
+          "auto": {
+            "type": "maxlen",
+            "value": 30
+          }
+        }
+      ]
+    },
+    {
+      "id": "paddle",
+      "title": "Paddle",
+      "titleLines": [
+        "Paddle"
+      ],
+      "tag": "Arcade  ·  1 player",
+      "short": "Paddle",
+      "art": "paddle",
+      "hero": "paddle",
+      "scoreUnit": "",
+      "news": "Paddle: the CPU got smarter",
+      "challenge": {
+        "text": "Win 5 matches",
+        "stat": "wins",
+        "goal": 5,
+        "reward": "$250 cash"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          1480
+        ],
+        [
+          "LilTrey",
+          1160
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "win1",
+          "name": "First Blood",
+          "desc": "Win a match",
+          "tier": "bronze",
+          "auto": {
+            "type": "wins",
+            "value": 1
+          }
+        },
+        {
+          "id": "rally15",
+          "name": "Long Rally",
+          "desc": "A rally of 15 hits",
+          "tier": "bronze",
+          "auto": {
+            "type": "rally",
+            "value": 15
+          }
+        },
+        {
+          "id": "win5",
+          "name": "Regular",
+          "desc": "Win 5 matches",
+          "tier": "silver",
+          "auto": {
+            "type": "wins",
+            "value": 5
+          }
+        },
+        {
+          "id": "shutout",
+          "name": "Clean Sheet",
+          "desc": "Win 7-0",
+          "tier": "gold"
+        }
+      ]
+    },
+    {
+      "id": "streetdash",
+      "title": "Street Dash",
+      "titleLines": [
+        "Street",
+        "Dash"
+      ],
+      "tag": "Runner  ·  1 player",
+      "short": "Street Dash",
+      "art": "streetdash",
+      "hero": "streetdash",
+      "scoreUnit": "m",
+      "news": "Street Dash: night mode is here",
+      "challenge": {
+        "text": "Collect 100 coins",
+        "stat": "coins",
+        "goal": 100,
+        "reward": "$250 cash"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          5240
+        ],
+        [
+          "LilTrey",
+          3980
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "d500",
+          "name": "Warm Up",
+          "desc": "Run 500 m",
+          "tier": "bronze",
+          "auto": {
+            "type": "best",
+            "value": 500
+          }
+        },
+        {
+          "id": "coin50",
+          "name": "Pocket Change",
+          "desc": "Collect 50 coins in total",
+          "tier": "bronze",
+          "auto": {
+            "type": "coins",
+            "value": 50
+          }
+        },
+        {
+          "id": "d2000",
+          "name": "Block Runner",
+          "desc": "Run 2,000 m",
+          "tier": "silver",
+          "auto": {
+            "type": "best",
+            "value": 2000
+          }
+        },
+        {
+          "id": "d5000",
+          "name": "Marathon",
+          "desc": "Run 5,000 m",
+          "tier": "gold",
+          "auto": {
+            "type": "best",
+            "value": 5000
+          }
+        }
+      ]
+    },
+    {
+      "id": "ceelo",
+      "title": "Cee-lo",
+      "titleLines": [
+        "Cee-lo"
+      ],
+      "tag": "Dice  ·  1 player",
+      "short": "Cee-lo",
+      "art": "ceelo",
+      "hero": "ceelo",
+      "scoreUnit": "",
+      "news": "Cee-lo: street rules, new tables",
+      "challenge": {
+        "text": "Win 10 rounds",
+        "stat": "wins",
+        "goal": 10,
+        "reward": "$500 cash"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          7400
+        ],
+        [
+          "LilTrey",
+          5200
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "win1",
+          "name": "Beginner's Luck",
+          "desc": "Win a round",
+          "tier": "bronze",
+          "auto": {
+            "type": "wins",
+            "value": 1
+          }
+        },
+        {
+          "id": "win10",
+          "name": "On A Roll",
+          "desc": "Win 10 rounds",
+          "tier": "silver",
+          "auto": {
+            "type": "wins",
+            "value": 10
+          }
+        },
+        {
+          "id": "456",
+          "name": "4-5-6",
+          "desc": "Roll a 4-5-6",
+          "tier": "silver"
+        },
+        {
+          "id": "triple",
+          "name": "Triple Up",
+          "desc": "Roll three of a kind",
+          "tier": "bronze"
+        },
+        {
+          "id": "chips5k",
+          "name": "High Roller",
+          "desc": "Reach 5,000 chips",
+          "tier": "gold",
+          "auto": {
+            "type": "best",
+            "value": 5000
+          }
+        }
+      ]
+    },
+    {
+      "id": "dominoes",
+      "title": "Dominoes",
+      "titleLines": [
+        "Dominoes"
+      ],
+      "tag": "Table  ·  1 player",
+      "short": "Dominoes",
+      "art": "dominoes",
+      "hero": "dominoes",
+      "scoreUnit": "",
+      "news": "Dominoes: house rules added",
+      "challenge": {
+        "text": "Win 3 games",
+        "stat": "wins",
+        "goal": 3,
+        "reward": "$250 cash"
+      },
+      "rivals": [
+        [
+          "Mookie",
+          38
+        ],
+        [
+          "LilTrey",
+          27
+        ]
+      ],
+      "trophies": [
+        {
+          "id": "win1",
+          "name": "Table Talk",
+          "desc": "Win a game",
+          "tier": "bronze",
+          "auto": {
+            "type": "wins",
+            "value": 1
+          }
+        },
+        {
+          "id": "win3",
+          "name": "Slammer",
+          "desc": "Win 3 games",
+          "tier": "silver",
+          "auto": {
+            "type": "wins",
+            "value": 3
+          }
+        },
+        {
+          "id": "double6",
+          "name": "Double Six",
+          "desc": "Play the double six",
+          "tier": "bronze"
+        },
+        {
+          "id": "win10",
+          "name": "House Rules",
+          "desc": "Win 10 games",
+          "tier": "gold",
+          "auto": {
+            "type": "wins",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "surf",
+      "title": "Counter-Strike Surf",
+      "titleLines": [
+        "Counter-Strike Surf"
+      ],
+      "tag": "Action  ·  Online",
+      "short": "Counter-Strike Surf",
+      "art": "surf",
+      "hero": "surf",
+      "scoreUnit": "",
+      "news": "Counter-Strike Surf: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Counter-Strike Surf",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "azeroth",
+      "title": "Azeroth Survivors",
+      "titleLines": [
+        "Azeroth Survivors"
+      ],
+      "tag": "Action  ·  Survivors  ·  Online",
+      "short": "Azeroth Survivors",
+      "art": "azeroth",
+      "hero": "azeroth",
+      "scoreUnit": "",
+      "news": "Azeroth Survivors: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Azeroth Survivors",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "pokeisaac",
+      "title": "PokeIsaac",
+      "titleLines": [
+        "PokeIsaac"
+      ],
+      "tag": "Roguelike  ·  Online",
+      "short": "PokeIsaac",
+      "art": "pokeisaac",
+      "hero": "pokeisaac",
+      "scoreUnit": "",
+      "news": "PokeIsaac: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start PokeIsaac",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "granny",
+      "title": "Granny Legacy",
+      "titleLines": [
+        "Granny Legacy"
+      ],
+      "tag": "Horror  ·  Online",
+      "short": "Granny Legacy",
+      "art": "granny",
+      "hero": "granny",
+      "scoreUnit": "",
+      "news": "Granny Legacy: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Granny Legacy",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "falloutnevada",
+      "title": "Fallout Nevada",
+      "titleLines": [
+        "Fallout Nevada"
+      ],
+      "tag": "RPG  ·  Online",
+      "short": "Fallout Nevada",
+      "art": "falloutnevada",
+      "hero": "falloutnevada",
+      "scoreUnit": "",
+      "news": "Fallout Nevada: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Fallout Nevada",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "linksarena",
+      "title": "Link's Arena",
+      "titleLines": [
+        "Link's Arena"
+      ],
+      "tag": "Fighting  ·  Online",
+      "short": "Link's Arena",
+      "art": "linksarena",
+      "hero": "linksarena",
+      "scoreUnit": "",
+      "news": "Link's Arena: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Link's Arena",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "conker",
+      "title": "Conker's BFD (Multiplayer)",
+      "titleLines": [
+        "Conker's BFD (Multiplayer)"
+      ],
+      "tag": "Shooter  ·  Online",
+      "short": "CONKER",
+      "art": "conker",
+      "hero": "conker",
+      "scoreUnit": "",
+      "news": "Conker's BFD (Multiplayer): on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Conker's BFD (Multiplayer)",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "d2survivors",
+      "title": "Diablo 2 Survivors",
+      "titleLines": [
+        "Diablo 2 Survivors"
+      ],
+      "tag": "Action  ·  Survivors  ·  Online",
+      "short": "Diablo 2 Survivors",
+      "art": "d2survivors",
+      "hero": "d2survivors",
+      "scoreUnit": "",
+      "news": "Diablo 2 Survivors: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Diablo 2 Survivors",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "pokesurvivor",
+      "title": "PokeSurvivor",
+      "titleLines": [
+        "PokeSurvivor"
+      ],
+      "tag": "Action  ·  Survivors  ·  Online",
+      "short": "PokeSurvivor",
+      "art": "pokesurvivor",
+      "hero": "pokesurvivor",
+      "scoreUnit": "",
+      "news": "PokeSurvivor: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start PokeSurvivor",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "wosu",
+      "title": "wosu!",
+      "titleLines": [
+        "wosu!"
+      ],
+      "tag": "Rhythm  ·  Online",
+      "short": "wosu!",
+      "art": "wosu",
+      "hero": "wosu",
+      "scoreUnit": "",
+      "news": "wosu!: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start wosu!",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "awbw",
+      "title": "Advance Wars By Web",
+      "titleLines": [
+        "Advance Wars By Web"
+      ],
+      "tag": "Strategy  ·  Online",
+      "short": "Advance Wars By Web",
+      "art": "awbw",
+      "hero": "awbw",
+      "scoreUnit": "",
+      "news": "Advance Wars By Web: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Advance Wars By Web",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "tweetcraft",
+      "title": "Tweetcraft",
+      "titleLines": [
+        "Tweetcraft"
+      ],
+      "tag": "Strategy  ·  Online",
+      "short": "Tweetcraft",
+      "art": "tweetcraft",
+      "hero": "tweetcraft",
+      "scoreUnit": "",
+      "news": "Tweetcraft: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Tweetcraft",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "redalert2",
+      "title": "Red Alert 2",
+      "titleLines": [
+        "Red Alert 2"
+      ],
+      "tag": "Strategy  ·  Online",
+      "short": "Red Alert 2",
+      "art": "redalert2",
+      "hero": "redalert2",
+      "scoreUnit": "",
+      "news": "Red Alert 2: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Red Alert 2",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "zquest",
+      "title": "ZQuest Classic",
+      "titleLines": [
+        "ZQuest Classic"
+      ],
+      "tag": "Adventure  ·  Online",
+      "short": "ZQuest Classic",
+      "art": "zquest",
+      "hero": "zquest",
+      "scoreUnit": "",
+      "news": "ZQuest Classic: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start ZQuest Classic",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "gizmoduck",
+      "title": "Gizmoduck",
+      "titleLines": [
+        "Gizmoduck"
+      ],
+      "tag": "Action  ·  Online",
+      "short": "Gizmoduck",
+      "art": "gizmoduck",
+      "hero": "gizmoduck",
+      "scoreUnit": "",
+      "news": "Gizmoduck: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Gizmoduck",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "xenosaga",
+      "title": "Xenosaga Pied Piper",
+      "titleLines": [
+        "Xenosaga Pied Piper"
+      ],
+      "tag": "Action  ·  Online",
+      "short": "Xenosaga Pied Piper",
+      "art": "xenosaga",
+      "hero": "xenosaga",
+      "scoreUnit": "",
+      "news": "Xenosaga Pied Piper: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Xenosaga Pied Piper",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "ynoproject",
+      "title": "YNOproject",
+      "titleLines": [
+        "YNOproject"
+      ],
+      "tag": "Exploration  ·  Online",
+      "short": "YNOproject",
+      "art": "ynoproject",
+      "hero": "ynoproject",
+      "scoreUnit": "",
+      "news": "YNOproject: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start YNOproject",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "mari0",
+      "title": "Mari0",
+      "titleLines": [
+        "Mari0"
+      ],
+      "tag": "Platformer  ·  Online",
+      "short": "Mari0",
+      "art": "mari0",
+      "hero": "mari0",
+      "scoreUnit": "",
+      "news": "Mari0: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Mari0",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "abobo",
+      "title": "Abobo's Big Adventure",
+      "titleLines": [
+        "Abobo's Big Adventure"
+      ],
+      "tag": "Brawler  ·  Online",
+      "short": "ABOBO",
+      "art": "abobo",
+      "hero": "abobo",
+      "scoreUnit": "",
+      "news": "Abobo's Big Adventure: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Abobo's Big Adventure",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "undertaleyellow",
+      "title": "Undertale Yellow",
+      "titleLines": [
+        "Undertale Yellow"
+      ],
+      "tag": "RPG  ·  Online",
+      "short": "Undertale Yellow",
+      "art": "undertaleyellow",
+      "hero": "undertaleyellow",
+      "scoreUnit": "",
+      "news": "Undertale Yellow: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Undertale Yellow",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "supermario63",
+      "title": "Super Mario 63",
+      "titleLines": [
+        "Super Mario 63"
+      ],
+      "tag": "Platformer  ·  Online",
+      "short": "Super Mario 63",
+      "art": "supermario63",
+      "hero": "supermario63",
+      "scoreUnit": "",
+      "news": "Super Mario 63: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Super Mario 63",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "megamanrpg",
+      "title": "Mega Man RPG Prototype",
+      "titleLines": [
+        "Mega Man RPG Prototype"
+      ],
+      "tag": "RPG  ·  Online",
+      "short": "MEGA MAN RPG",
+      "art": "megamanrpg",
+      "hero": "megamanrpg",
+      "scoreUnit": "",
+      "news": "Mega Man RPG Prototype: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Mega Man RPG Prototype",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "pokeclicker",
+      "title": "PokeClicker",
+      "titleLines": [
+        "PokeClicker"
+      ],
+      "tag": "Idle  ·  Online",
+      "short": "PokeClicker",
+      "art": "pokeclicker",
+      "hero": "pokeclicker",
+      "scoreUnit": "",
+      "news": "PokeClicker: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start PokeClicker",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "pokepath",
+      "title": "PokePath TD",
+      "titleLines": [
+        "PokePath TD"
+      ],
+      "tag": "Tower defense  ·  Online",
+      "short": "PokePath TD",
+      "art": "pokepath",
+      "hero": "pokepath",
+      "scoreUnit": "",
+      "news": "PokePath TD: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start PokePath TD",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "fnafnes",
+      "title": "Five Nights at Freddy's NES",
+      "titleLines": [
+        "Five Nights at Freddy's NES"
+      ],
+      "tag": "Horror  ·  Online",
+      "short": "FNAF NES",
+      "art": "fnafnes",
+      "hero": "fnafnes",
+      "scoreUnit": "",
+      "news": "Five Nights at Freddy's NES: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Five Nights at Freddy's NES",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "ff7firstsoldier",
+      "title": "FF7: The First SOLDIER (Fan Remake)",
+      "titleLines": [
+        "FF7: The First SOLDIER (Fan Remake)"
+      ],
+      "tag": "Action  ·  Online",
+      "short": "FIRST SOLDIER",
+      "art": "ff7firstsoldier",
+      "hero": "ff7firstsoldier",
+      "scoreUnit": "",
+      "news": "FF7: The First SOLDIER (Fan Remake): on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start FF7: The First SOLDIER (Fan Remake)",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "xim",
+      "title": "Xim (FF11 fangame)",
+      "titleLines": [
+        "Xim (FF11 fangame)"
+      ],
+      "tag": "RPG  ·  Online",
+      "short": "Xim (FF11 fangame)",
+      "art": "xim",
+      "hero": "xim",
+      "scoreUnit": "",
+      "news": "Xim (FF11 fangame): on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Xim (FF11 fangame)",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "badmonday",
+      "title": "Bad Monday Simulator",
+      "titleLines": [
+        "Bad Monday Simulator"
+      ],
+      "tag": "Comedy  ·  Online",
+      "short": "Bad Monday Simulator",
+      "art": "badmonday",
+      "hero": "badmonday",
+      "scoreUnit": "",
+      "news": "Bad Monday Simulator: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Bad Monday Simulator",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "lightnerslive",
+      "title": "Deltarune: Lightners Live Plus",
+      "titleLines": [
+        "Deltarune: Lightners Live Plus"
+      ],
+      "tag": "Rhythm  ·  Online",
+      "short": "LIGHTNERS LIVE",
+      "art": "lightnerslive",
+      "hero": "lightnerslive",
+      "scoreUnit": "",
+      "news": "Deltarune: Lightners Live Plus: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Deltarune: Lightners Live Plus",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "dbdevolution",
+      "title": "Dragon Ball Devolution",
+      "titleLines": [
+        "Dragon Ball Devolution"
+      ],
+      "tag": "Fighting  ·  Online",
+      "short": "DB DEVOLUTION",
+      "art": "dbdevolution",
+      "hero": "dbdevolution",
+      "scoreUnit": "",
+      "news": "Dragon Ball Devolution: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Dragon Ball Devolution",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "pokerogue",
+      "title": "PokeRogue",
+      "titleLines": [
+        "PokeRogue"
+      ],
+      "tag": "Roguelike  ·  Online",
+      "short": "PokeRogue",
+      "art": "pokerogue",
+      "hero": "pokerogue",
+      "scoreUnit": "",
+      "news": "PokeRogue: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start PokeRogue",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "nsmbvs",
+      "title": "NSMB - Mario Vs Luigi Online",
+      "titleLines": [
+        "NSMB - Mario Vs Luigi Online"
+      ],
+      "tag": "Platformer  ·  Online",
+      "short": "MARIO VS LUIGI",
+      "art": "nsmbvs",
+      "hero": "nsmbvs",
+      "scoreUnit": "",
+      "news": "NSMB - Mario Vs Luigi Online: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start NSMB - Mario Vs Luigi Online",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "supermario127",
+      "title": "Super Mario 127",
+      "titleLines": [
+        "Super Mario 127"
+      ],
+      "tag": "Platformer  ·  Online",
+      "short": "Super Mario 127",
+      "art": "supermario127",
+      "hero": "supermario127",
+      "scoreUnit": "",
+      "news": "Super Mario 127: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Super Mario 127",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "srb2kart",
+      "title": "Sonic Robo Blast 2 Kart",
+      "titleLines": [
+        "Sonic Robo Blast 2 Kart"
+      ],
+      "tag": "Racing  ·  Online",
+      "short": "SRB2 KART",
+      "art": "srb2kart",
+      "hero": "srb2kart",
+      "scoreUnit": "",
+      "news": "Sonic Robo Blast 2 Kart: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Sonic Robo Blast 2 Kart",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "srb2",
+      "title": "Sonic Robo Blast 2",
+      "titleLines": [
+        "Sonic Robo Blast 2"
+      ],
+      "tag": "Platformer  ·  Online",
+      "short": "Sonic Robo Blast 2",
+      "art": "srb2",
+      "hero": "srb2",
+      "scoreUnit": "",
+      "news": "Sonic Robo Blast 2: on GameStation 5",
+      "challenge": {
+        "text": "Start 10 sessions",
+        "stat": "launches",
+        "goal": 10,
+        "reward": "Bragging rights"
+      },
+      "rivals": [],
+      "trophies": [
+        {
+          "id": "first",
+          "name": "Player One",
+          "desc": "Start Sonic Robo Blast 2",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 1
+          }
+        },
+        {
+          "id": "five",
+          "name": "Regular",
+          "desc": "Start 5 sessions",
+          "tier": "bronze",
+          "auto": {
+            "type": "launches",
+            "value": 5
+          }
+        },
+        {
+          "id": "ten",
+          "name": "Dedicated",
+          "desc": "Start 10 sessions",
+          "tier": "silver",
+          "auto": {
+            "type": "launches",
+            "value": 10
+          }
+        }
+      ]
+    }
+  ],
+  "friends": [
+    [
+      "LilTrey",
+      "#ff7a59"
+    ],
+    [
+      "Mookie",
+      "#5a8dff"
+    ],
+    [
+      "QuietStorm",
+      "#b55aff"
+    ]
+  ],
+  "messages": [
+    [
+      "Lil Trey",
+      "u up for dominoes",
+      "#ff7a59"
+    ]
+  ]
+}

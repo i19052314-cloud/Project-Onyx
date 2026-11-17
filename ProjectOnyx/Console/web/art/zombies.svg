@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="zb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#27381f"/><stop offset=".6" stop-color="#0f1a0e"/><stop offset="1" stop-color="#050805"/></linearGradient>
+<radialGradient id="zm" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#e6ffb0"/><stop offset="1" stop-color="#e6ffb0" stop-opacity="0"/></radialGradient></defs>
+<rect width="240" height="240" fill="url(#zb)"/><circle cx="170" cy="62" r="52" fill="url(#zm)" opacity=".55"/><circle cx="170" cy="62" r="24" fill="#eaffc2"/>
+<g fill="#050805"><path d="M0 190 L0 150 L22 150 L22 120 L40 120 L40 150 L70 150 L70 100 L96 100 L96 190 Z"/><path d="M150 190 L150 140 L180 140 L180 118 L206 118 L206 150 L240 150 L240 190 Z"/></g>
+<g transform="translate(120 150)" fill="#6b9a4a"><circle cx="0" cy="-30" r="15"/><path d="M-13 -14 L13 -14 L16 30 L-16 30 Z" fill="#3d5a2c"/><path d="M-13 -12 L-44 -2" stroke="#6b9a4a" stroke-width="8" stroke-linecap="round"/><path d="M13 -12 L44 -4" stroke="#6b9a4a" stroke-width="8" stroke-linecap="round"/><circle cx="-5" cy="-32" r="3" fill="#ff3b2f"/><circle cx="6" cy="-32" r="3" fill="#ff3b2f"/></g>
+<path d="M0 190 H240 V240 H0 Z" fill="#070a06"/><path d="M0 190 H240" stroke="#7fb050" stroke-opacity=".4" stroke-width="2"/>
+<text x="120" y="224" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="22" letter-spacing="3" fill="#d9ff9a">ZOMBIES</text></svg>

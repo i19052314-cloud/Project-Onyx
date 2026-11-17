@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 240" width="240" height="240">
+      <defs><radialGradient id="t6bg" cx=".5" cy=".4" r=".85"><stop offset="0" stop-color="#2a2f3d"/><stop offset="1" stop-color="#07080e"/></radialGradient></defs>
+      <rect width="240" height="240" fill="url(#t6bg)"/>
+      <g transform="translate(120 130)"><g transform="rotate(-22) translate(-48 -80)"><rect width="96" height="140" rx="12" fill="#f6f2e6"/><text x="12" y="34" font-family="Georgia,serif" font-size="30" font-weight="700" fill="#c0262d">K</text><text x="12" y="58" font-family="Georgia,serif" font-size="26" fill="#c0262d">♥</text></g>
+        <g transform="rotate(22) translate(-48 -80)"><rect width="96" height="140" rx="12" fill="#f6f2e6"/><text x="12" y="34" font-family="Georgia,serif" font-size="30" font-weight="700" fill="#11131a">A</text><text x="12" y="58" font-family="Georgia,serif" font-size="26" fill="#11131a">♠</text>
+          <path d="M48 52 C20 82 22 100 40 100 C44 100 47 98 48 95 C49 98 52 100 56 100 C74 100 76 82 48 52 Z M44 98 L52 98 L54 114 L42 114 Z" fill="#11131a"/></g></g>
+    </svg>

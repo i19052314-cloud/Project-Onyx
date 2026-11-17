@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb23a"/><stop offset=".55" stop-color="#e8602a"/><stop offset="1" stop-color="#3a1006"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<path d="M0 196 L0 168 L50 160 L90 172 L150 156 L240 166 L240 196 Z" fill="#5a2a10"/><path d="M60 112 L240 92 L240 140 Z" fill="#7af0ff" opacity=".45"/><path d="M60 112 L240 104 L240 128 Z" fill="#dffcff"/><circle cx="60" cy="112" r="26" fill="#7af0ff" opacity=".5"/><circle cx="60" cy="112" r="14" fill="#dffcff"/><g transform="translate(36 112)"><rect x="-10" y="-14" width="16" height="30" rx="4" fill="#ff7a1a"/><circle cx="-2" cy="-24" r="9" fill="#ffd9c2"/><path d="M-12 -30 L-6 -46 L-2 -32 L4 -44 L6 -30 L14 -38 L8 -26 Z" fill="#1a1a1a"/></g>
+<path d="M0 196 H240 V240 H0 Z" fill="#3a1006"/><path d="M0 196 H240" stroke="#dffcff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="17" letter-spacing="2" fill="#fff">DB DEVOLUTION</text></svg>

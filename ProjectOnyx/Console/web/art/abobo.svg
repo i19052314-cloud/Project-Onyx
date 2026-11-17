@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb23a"/><stop offset=".55" stop-color="#d8542a"/><stop offset="1" stop-color="#3a0e0a"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<g fill="#5a1a0e"><rect x="0" y="110" width="50" height="86"/><rect x="190" y="96" width="50" height="100"/></g><path d="M120 30 L136 64 L174 52 L156 86 L196 100 L156 112 L172 148 L134 130 L120 164 L106 130 L68 148 L84 112 L44 100 L84 86 L66 52 L104 64 Z" fill="#fff3b0"/><g transform="translate(120 104)"><rect x="-26" y="-18" width="52" height="38" rx="12" fill="#ffc8a0" stroke="#5a1a0e" stroke-width="4"/><path d="M-14 -18 V6 M0 -18 V6 M14 -18 V6" stroke="#5a1a0e" stroke-width="3"/><rect x="-20" y="20" width="40" height="18" fill="#3a6ad8"/></g><text x="120" y="60" text-anchor="middle" font-family="Bahnschrift,Arial" font-weight="900" font-size="22" fill="#d8302a">POW!</text>
+<path d="M0 196 H240 V240 H0 Z" fill="#3a0e0a"/><path d="M0 196 H240" stroke="#fff3b0" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">ABOBO</text></svg>

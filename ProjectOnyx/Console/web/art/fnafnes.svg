@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1a2a"/><stop offset=".55" stop-color="#0a0a14"/><stop offset="1" stop-color="#000000"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<rect x="20" y="40" width="200" height="156" fill="#14141f"/><rect x="40" y="60" width="70" height="90" fill="#000"/><rect x="130" y="60" width="70" height="90" fill="#000"/><g fill="#fff"><rect x="58" y="96" width="10" height="10"/><rect x="82" y="96" width="10" height="10"/></g><g fill="#ff3a3a"><rect x="150" y="100" width="8" height="8"/><rect x="172" y="100" width="8" height="8"/></g><rect x="20" y="160" width="200" height="36" fill="#2a2a3a"/><rect x="96" y="150" width="48" height="26" fill="#3a3a4a"/><rect x="102" y="156" width="36" height="14" fill="#7af0a0" opacity=".6"/><text x="120" y="34" text-anchor="middle" font-family="Consolas,monospace" font-weight="700" font-size="14" fill="#fff" opacity=".8">12 AM</text>
+<path d="M0 196 H240 V240 H0 Z" fill="#000000"/><path d="M0 196 H240" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">FNAF NES</text></svg>

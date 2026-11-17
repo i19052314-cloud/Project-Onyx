@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd84a"/><stop offset=".55" stop-color="#e88a2a"/><stop offset="1" stop-color="#3a1a06"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<g transform="translate(110 108)"><circle r="44" fill="#f4f4f4"/><path d="M-44 0 A44 44 0 0 1 44 0 Z" fill="#e8402f"/><rect x="-44" y="-5" width="88" height="10" fill="#1a1a1a"/><circle r="13" fill="#f4f4f4" stroke="#1a1a1a" stroke-width="6"/></g><g transform="translate(150 150) rotate(-20)"><path d="M0 0 L0 40 L10 30 L18 48 L26 44 L18 26 L32 26 Z" fill="#fff" stroke="#1a1a1a" stroke-width="3"/></g><g font-family="Bahnschrift,Arial" font-weight="800" fill="#fff"><text x="40" y="56" font-size="18">+1</text><text x="176" y="70" font-size="22">+5</text><text x="190" y="40" font-size="14" opacity=".7">+1</text></g>
+<path d="M0 196 H240 V240 H0 Z" fill="#3a1a06"/><path d="M0 196 H240" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="17" letter-spacing="2" fill="#fff">POKECLICKER</text></svg>

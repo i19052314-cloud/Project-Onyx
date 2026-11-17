@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 800" width="1920" height="800" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4ab4ff"/><stop offset=".55" stop-color="#2a6ad0"/><stop offset="1" stop-color="#0a1a3a"/></linearGradient>
+<filter id="b"><feGaussianBlur stdDeviation="40"/></filter><clipPath id="c"><rect width="240" height="198"/></clipPath></defs>
+<rect width="1920" height="800" fill="url(#a)"/>
+<circle cx="1440" cy="360" r="300" fill="#dff4ff" opacity=".18" filter="url(#b)"/>
+<g transform="translate(1060 40) scale(3.2)" clip-path="url(#c)"><path d="M0 196 L0 160 L60 150 L120 164 L180 148 L240 158 L240 196 Z" fill="#12306a"/><g fill="#7af0ff" opacity=".9"><path d="M40 160 L50 120 L60 160 Z"/><path d="M56 162 L64 132 L72 162 Z"/><path d="M190 156 L200 112 L210 156 Z"/></g><g transform="translate(120 96)"><path d="M-36 6 Q-30 -30 4 -28 Q30 -26 34 -4 Q38 20 10 26 Q-24 30 -36 6 Z" fill="#dff4ff"/><path d="M30 -16 L52 -20 L34 -6 Z" fill="#ffb23a"/><circle cx="18" cy="-14" r="4" fill="#0a1a3a"/><path d="M-30 -2 Q-56 -24 -44 6 Q-50 20 -26 14 Z" fill="#a8dcff"/></g></g>
+<path d="M0 674 H1920 V800 H0 Z" fill="#0a1a3a"/>
+<g fill="#fff" opacity=".6"><circle cx="1010" cy="90" r="3"/><circle cx="1200" cy="60" r="2.5"/><circle cx="1790" cy="120" r="3"/><circle cx="1880" cy="360" r="2.5"/><circle cx="960" cy="300" r="2"/></g></svg>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff6ab4"/><stop offset=".55" stop-color="#a02a8a"/><stop offset="1" stop-color="#1a0626"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<circle cx="120" cy="104" r="62" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="4"/><circle cx="120" cy="104" r="40" fill="#ff3d9a" stroke="#fff" stroke-width="6"/><text x="120" y="118" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="38" fill="#fff">1</text><circle cx="52" cy="160" r="20" fill="#7a3dff" stroke="#fff" stroke-width="4"/><circle cx="196" cy="56" r="16" fill="#7a3dff" stroke="#fff" stroke-width="4"/><path d="M52 160 Q86 150 120 104 Q160 60 196 56" stroke="#fff" stroke-opacity=".35" stroke-width="10" fill="none" stroke-linecap="round"/>
+<path d="M0 196 H240 V240 H0 Z" fill="#1a0626"/><path d="M0 196 H240" stroke="#ffffff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">WOSU!</text></svg>

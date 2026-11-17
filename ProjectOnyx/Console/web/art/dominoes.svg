@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 240" width="240" height="240">
+      <defs><radialGradient id="t5bg" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="#1f7a4a"/><stop offset="1" stop-color="#083a20"/></radialGradient>
+        <linearGradient id="t5d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf7ea"/><stop offset="1" stop-color="#d8d1b8"/></linearGradient></defs>
+      <rect width="240" height="240" fill="url(#t5bg)"/>
+      <g transform="translate(60 40) rotate(-18)"><rect width="56" height="108" rx="9" fill="url(#t5d)" stroke="#8a8467" stroke-width="2"/><path d="M6 54 H50" stroke="#8a8467" stroke-width="2.5"/>
+        <g fill="#16181d"><circle cx="16" cy="16" r="6"/><circle cx="40" cy="16" r="6"/><circle cx="16" cy="38" r="6"/><circle cx="40" cy="38" r="6"/><circle cx="28" cy="78" r="6"/><circle cx="16" cy="92" r="6"/><circle cx="40" cy="64" r="6"/></g></g>
+      <g transform="translate(130 70) rotate(24)"><rect width="56" height="108" rx="9" fill="url(#t5d)" stroke="#8a8467" stroke-width="2"/><path d="M6 54 H50" stroke="#8a8467" stroke-width="2.5"/>
+        <g fill="#16181d"><circle cx="16" cy="16" r="6"/><circle cx="40" cy="38" r="6"/><circle cx="28" cy="27" r="6"/><circle cx="16" cy="70" r="6"/><circle cx="40" cy="70" r="6"/><circle cx="16" cy="92" r="6"/><circle cx="40" cy="92" r="6"/></g></g>
+    </svg>

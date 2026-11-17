@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240"><defs>
+<linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38c8ff"/><stop offset=".55" stop-color="#2a5bd7"/><stop offset="1" stop-color="#0a1340"/></linearGradient></defs>
+<rect width="240" height="240" fill="url(#bg)"/>
+<path d="M-10 196 L70 90 L110 90 L60 196 Z" fill="#1d3fa8"/><path d="M70 90 L110 90" stroke="#bdf3ff" stroke-width="3"/><path d="M130 196 L190 70 L250 70 L250 196 Z" fill="#14307e"/><path d="M190 70 L250 70" stroke="#bdf3ff" stroke-width="3"/><g transform="translate(112 118) rotate(-28)"><circle cx="0" cy="-26" r="8" fill="#ffd6a8"/><path d="M-7 -18 L7 -18 L9 6 L-9 6 Z" fill="#ff7a2f"/><path d="M-6 6 L-14 26 M6 6 L14 26" stroke="#2b2f45" stroke-width="5" stroke-linecap="round"/><path d="M-7 -14 L-24 -2 M7 -14 L24 -24" stroke="#ff7a2f" stroke-width="4" stroke-linecap="round"/></g><path d="M40 140 H90 M30 156 H74 M52 172 H96" stroke="#fff" stroke-opacity=".5" stroke-width="3" stroke-linecap="round"/>
+<path d="M0 196 H240 V240 H0 Z" fill="#0a1340"/><path d="M0 196 H240" stroke="#bdf3ff" stroke-opacity=".5" stroke-width="2"/>
+<text x="120" y="226" text-anchor="middle" font-family="Bahnschrift,Segoe UI,Arial" font-weight="800" font-size="21" letter-spacing="2" fill="#fff">SURF</text></svg>

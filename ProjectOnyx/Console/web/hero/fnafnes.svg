@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 800" width="1920" height="800" preserveAspectRatio="xMidYMid slice"><defs>
+<linearGradient id="a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a1a2a"/><stop offset=".55" stop-color="#0a0a14"/><stop offset="1" stop-color="#000000"/></linearGradient>
+<filter id="b"><feGaussianBlur stdDeviation="40"/></filter><clipPath id="c"><rect width="240" height="198"/></clipPath></defs>
+<rect width="1920" height="800" fill="url(#a)"/>
+<circle cx="1440" cy="360" r="300" fill="#ffffff" opacity=".18" filter="url(#b)"/>
+<g transform="translate(1060 40) scale(3.2)" clip-path="url(#c)"><rect x="20" y="40" width="200" height="156" fill="#14141f"/><rect x="40" y="60" width="70" height="90" fill="#000"/><rect x="130" y="60" width="70" height="90" fill="#000"/><g fill="#fff"><rect x="58" y="96" width="10" height="10"/><rect x="82" y="96" width="10" height="10"/></g><g fill="#ff3a3a"><rect x="150" y="100" width="8" height="8"/><rect x="172" y="100" width="8" height="8"/></g><rect x="20" y="160" width="200" height="36" fill="#2a2a3a"/><rect x="96" y="150" width="48" height="26" fill="#3a3a4a"/><rect x="102" y="156" width="36" height="14" fill="#7af0a0" opacity=".6"/><text x="120" y="34" text-anchor="middle" font-family="Consolas,monospace" font-weight="700" font-size="14" fill="#fff" opacity=".8">12 AM</text></g>
+<path d="M0 674 H1920 V800 H0 Z" fill="#000000"/>
+<g fill="#fff" opacity=".6"><circle cx="1010" cy="90" r="3"/><circle cx="1200" cy="60" r="2.5"/><circle cx="1790" cy="120" r="3"/><circle cx="1880" cy="360" r="2.5"/><circle cx="960" cy="300" r="2"/></g></svg>
