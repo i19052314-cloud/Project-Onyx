@@ -1,0 +1,13 @@
+# C# build output (the Onyx RP package itself ships no binaries from src/)
+src/**/bin/
+src/**/obj/
+*.user
+*.suo
+.vs/
+
+# Local ScriptHookVDotNet reference used only to compile
+lib/shvdn3/*.dll
+
+# Runtime output of the module inside the game folder (never commit a world)
+OnyxNations/Saves/
+OnyxNations/*.log
