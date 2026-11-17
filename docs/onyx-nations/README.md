@@ -11,6 +11,7 @@
 | [00-authorization.md](00-authorization.md) | Запись заявления правообладателя и границы, которые остаются в силе |
 | [02-milestone-m0-m1.md](02-milestone-m0-m1.md) | Что сделано в M0–M1, как собрать, как проверить в игре, чего там нет |
 | [03-milestone-m2-m7.md](03-milestone-m2-m7.md) | Ядро симуляции M2–M7: армии, бой, оккупация, экономика, мозг ИИ, сохранения, планшет |
+| [04-milestone-m2-m4.md](04-milestone-m2-m4.md) | Границы (M2), выборы и партии (M3), назначения в правительстве (M4) |
 | [map-preview.png](map-preview.png) | Превью разбиения карты ( RSA — синий, ФЗСА — оранжевый, спорные — жёлтый) |
 
 ## Инструменты (`tools/`)
@@ -18,8 +19,8 @@
 ```bash
 python3 tools/build_regions.py      # пересобрать Regions.xml + превью карты и проверить геометрию
 python3 tools/sim_reference.py --years 2   # исполняемая эталонная модель механик
-python3 tools/check_parity.py       # не разошлись ли C# и эталонная модель (165 проверок)
-python3 tools/test_world_data.py    # тесты контракта данных и сохранений (391 проверка)
+python3 tools/check_parity.py       # не разошлись ли C# и эталонная модель (237 проверок)
+python3 tools/test_world_data.py    # тесты контракта данных и сохранений (779 проверок)
 python3 tools/check_sources.py      # структурная проверка C# без компилятора
 ```
 

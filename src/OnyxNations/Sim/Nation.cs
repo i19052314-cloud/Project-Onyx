@@ -88,6 +88,20 @@ namespace OnyxNations.Sim
         public readonly Dictionary<MinistryRole, Minister> Ministers = new Dictionary<MinistryRole, Minister>();
         public readonly Dictionary<string, Relation> Relations = new Dictionary<string, Relation>(StringComparer.Ordinal);
         public readonly HashSet<string> AtWar = new HashSet<string>(StringComparer.Ordinal);
+        public readonly List<Party> Parties = new List<Party>();
+
+        public Party PartyById(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return null;
+            for (int i = 0; i < Parties.Count; i++)
+            {
+                if (string.Equals(Parties[i].Id, id, StringComparison.Ordinal)) return Parties[i];
+            }
+            return null;
+        }
+
+        /// <summary>The party holding the presidency, or null.</summary>
+        public Party RulingParty { get { return PartyById(Office.RulingPartyId); } }
 
         public Presidency Office = new Presidency();
 

@@ -119,6 +119,16 @@ namespace OnyxNations.Presentation
             return _relationshipGroups.TryGetValue(nationId, out g) ? g : 0;
         }
 
+        /// <summary>
+        /// The relationship group of a nation's soldiers, so the border guards can
+        /// be put on the same side instead of standing next to their own army as
+        /// neutrals.
+        /// </summary>
+        public int RelationshipGroupOf(string nationId)
+        {
+            return GroupOf(nationId);
+        }
+
         // --------------------------------------------------------------- tick
         public void Update(Vector3 playerPosition)
         {

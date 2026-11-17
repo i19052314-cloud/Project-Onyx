@@ -195,6 +195,147 @@ namespace OnyxNations.Core
         [XmlAttribute] public float Loyalty;
     }
 
+    // ------------------------------------------------------------- Borders --
+
+    [XmlRoot("OnyxNations")]
+    public class BordersDocument
+    {
+        [XmlElement("BorderSettings")]
+        public BorderSettingsDef Settings = new BorderSettingsDef();
+
+        [XmlElement("Models")]
+        public BorderModelsDef Models = new BorderModelsDef();
+
+        [XmlArray("Overrides")]
+        [XmlArrayItem("Crossing")]
+        public List<BorderCrossingDef> Overrides = new List<BorderCrossingDef>();
+    }
+
+    /// <summary>
+    /// The props, guard models and vehicles a checkpoint is built from. All three
+    /// child element names live under one &lt;Models&gt; element, so they need a
+    /// wrapper type rather than three arrays with the same name.
+    /// </summary>
+    public class BorderModelsDef
+    {
+        [XmlElement("Prop")]
+        public List<BorderPropDef> Props = new List<BorderPropDef>();
+
+        [XmlElement("Ped")]
+        public List<BorderPedDef> Peds = new List<BorderPedDef>();
+
+        [XmlElement("Vehicle")]
+        public List<BorderVehicleDef> Vehicles = new List<BorderVehicleDef>();
+    }
+
+    public class BorderSettingsDef
+    {
+        [XmlAttribute] public float CheckpointRadiusMetres = 55f;
+        [XmlAttribute] public int GuardsPerPost = 2;
+        [XmlAttribute] public float PatrolRadiusMetres = 40f;
+        [XmlAttribute] public float ManningPerDay = 0.25f;
+        [XmlAttribute] public float DecayPerDayWithoutGarrison = 0.10f;
+        [XmlAttribute] public float IncidentCooldownSeconds = 30f;
+        [XmlAttribute] public int OpenAbove = 40;
+        [XmlAttribute] public int InspectAbove = -20;
+        [XmlAttribute] public int ClosedBelow = -20;
+    }
+
+    public class BorderPropDef
+    {
+        [XmlAttribute] public string Model;
+        [XmlAttribute] public float OffsetX;
+        [XmlAttribute] public float OffsetY;
+        [XmlAttribute] public float Heading;
+        [XmlAttribute] public string Role;
+    }
+
+    public class BorderPedDef
+    {
+        [XmlAttribute] public string Model;
+        [XmlAttribute] public string Role;
+    }
+
+    public class BorderVehicleDef
+    {
+        [XmlAttribute] public string Model;
+        [XmlAttribute] public string Role;
+    }
+
+    public class BorderCrossingDef
+    {
+        [XmlAttribute] public string RegionA;
+        [XmlAttribute] public string RegionB;
+        [XmlAttribute] public float X;
+        [XmlAttribute] public float Y;
+        [XmlAttribute] public string Name;
+        [XmlAttribute] public string NameRu;
+    }
+
+    // ------------------------------------------------------------- Parties --
+
+    [XmlRoot("OnyxNations")]
+    public class PartiesDocument
+    {
+        [XmlElement("ElectionRules")]
+        public ElectionRulesDef Rules = new ElectionRulesDef();
+
+        [XmlArray("Parties")]
+        [XmlArrayItem("Party")]
+        public List<PartyDef> Parties = new List<PartyDef>();
+    }
+
+    public class ElectionRulesDef
+    {
+        [XmlAttribute] public int TermDays = 360;
+        [XmlAttribute] public int MaxTerms = 2;
+        [XmlAttribute] public int CampaignDays = 30;
+        [XmlAttribute] public float MinTurnout = 0.35f;
+        [XmlAttribute] public float MaxTurnout = 0.85f;
+        [XmlAttribute] public float IncumbencyBonus = 0.06f;
+        [XmlAttribute] public float WarRallyBonus = 0.10f;
+        [XmlAttribute] public float ScandalPenalty = 0.25f;
+        [XmlAttribute] public double ChallengerFundsPerDay = 45000.0;
+        [XmlAttribute] public double PlayerFundsPerDay = 60000.0;
+    }
+
+    public class PartyDef
+    {
+        [XmlAttribute] public string ID;
+        [XmlAttribute] public string Nation;
+        [XmlAttribute] public string Name;
+        [XmlAttribute] public string NameRu;
+        [XmlAttribute] public float TaxBias;
+        [XmlAttribute] public float Hawkishness;
+        [XmlAttribute] public float Popularity;
+        [XmlAttribute] public int R = 200;
+        [XmlAttribute] public int G = 200;
+        [XmlAttribute] public int B = 200;
+        [XmlAttribute] public bool IsPlayerParty;
+    }
+
+    // -------------------------------------------------------------- People --
+
+    [XmlRoot("OnyxNations")]
+    public class PeopleDocument
+    {
+        [XmlArray("Candidates")]
+        [XmlArrayItem("Candidate")]
+        public List<CandidateDef> Candidates = new List<CandidateDef>();
+    }
+
+    public class CandidateDef
+    {
+        [XmlAttribute] public string Nation;
+        [XmlAttribute] public string Role;
+        [XmlAttribute] public string Name;
+        [XmlAttribute] public string NameRu;
+        [XmlAttribute] public float Competence;
+        [XmlAttribute] public float Loyalty;
+        [XmlAttribute] public double Salary;
+        [XmlAttribute] public string Faction;
+    }
+
     /// <summary>
     /// Loads the authored XML into the simulation model. Runs once at startup and
     /// never again - a corrupt config is a startup error with a clear log line, not
@@ -220,6 +361,21 @@ namespace OnyxNations.Core
         public static ArmiesDocument LoadArmies(string path)
         {
             return Load<ArmiesDocument>(path);
+        }
+
+        public static BordersDocument LoadBorders(string path)
+        {
+            return Load<BordersDocument>(path);
+        }
+
+        public static PartiesDocument LoadParties(string path)
+        {
+            return Load<PartiesDocument>(path);
+        }
+
+        public static PeopleDocument LoadPeople(string path)
+        {
+            return Load<PeopleDocument>(path);
         }
 
         private static T Load<T>(string path) where T : class
@@ -357,6 +513,68 @@ namespace OnyxNations.Core
         /// created next to each nation's capital; they are data until the tactical
         /// spawner materialises them near the player.
         /// </summary>
+        /// <summary>
+        /// Seat the parties from Parties.xml and mark the player's party. Doing it
+        /// here keeps "who is in power" in exactly one place: the data file.
+        /// </summary>
+        public static void BuildParties(World world, PartiesDocument parties)
+        {
+            if (parties == null) return;
+            for (int i = 0; i < parties.Parties.Count; i++)
+            {
+                PartyDef pd = parties.Parties[i];
+                if (pd == null || string.IsNullOrEmpty(pd.ID)) continue;
+                Nation nation = world.NationById(pd.Nation);
+                if (nation == null)
+                {
+                    Log.Warn("party '{0}' configured for unknown nation '{1}'", pd.ID, pd.Nation);
+                    continue;
+                }
+                Party party = new Party
+                {
+                    Id = pd.ID,
+                    NationId = pd.Nation,
+                    Name = pd.Name,
+                    NameRu = pd.NameRu,
+                    TaxBias = pd.TaxBias,
+                    Hawkishness = pd.Hawkishness,
+                    Popularity = pd.Popularity,
+                    IsPlayerParty = pd.IsPlayerParty,
+                    R = pd.R, G = pd.G, B = pd.B
+                };
+                nation.Parties.Add(party);
+
+                if (pd.IsPlayerParty)
+                {
+                    nation.Office.PlayerPartyId = pd.ID;
+                    nation.Office.PlayerIsPresident = true;
+                    nation.Office.IncumbentName = pd.NameRu ?? pd.Name ?? "";
+                }
+                if (string.IsNullOrEmpty(nation.Office.RulingPartyId) && pd.IsPlayerParty)
+                {
+                    nation.Office.RulingPartyId = pd.ID;
+                }
+            }
+
+            // A nation whose data file names no ruling party starts with its most
+            // popular one, so the election screen is never empty.
+            for (int i = 0; i < world.Nations.Count; i++)
+            {
+                Nation n = world.Nations[i];
+                if (!string.IsNullOrEmpty(n.Office.RulingPartyId) || n.Parties.Count == 0) continue;
+                Party best = n.Parties[0];
+                for (int k = 1; k < n.Parties.Count; k++)
+                {
+                    if (n.Parties[k].Popularity > best.Popularity) best = n.Parties[k];
+                }
+                n.Office.RulingPartyId = best.Id;
+                if (string.IsNullOrEmpty(n.Office.IncumbentName))
+                {
+                    n.Office.IncumbentName = best.NameRu ?? best.Name ?? "";
+                }
+            }
+        }
+
         public static Dictionary<string, UnitType> BuildArmies(World world, ArmiesDocument armies,
                                                                UnitTypesDocument unitTypes)
         {

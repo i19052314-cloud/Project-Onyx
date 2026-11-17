@@ -44,14 +44,16 @@ namespace OnyxNations.Presentation
         /// <summary>Index of the current tablet screen.</summary>
         public int Tab { get { return _tab; } }
 
+        private const int TabCount = 7;
+
         public void NextTab()
         {
-            _tab = (_tab + 1) % 4;
+            _tab = (_tab + 1) % TabCount;
         }
 
         public void PreviousTab()
         {
-            _tab = (_tab + 3) % 4;
+            _tab = (_tab + TabCount - 1) % TabCount;
         }
 
         /// <summary>
@@ -102,11 +104,77 @@ namespace OnyxNations.Presentation
                         (player.TaxRate * 100f).ToString("0", CultureInfo.InvariantCulture) + "%", 2400);
                     break;
 
+                case 4:         // borders - show the posture of the nearest post
+                    Region here4 = tracker != null ? tracker.Current : null;
+                    if (here4 == null) break;
+                    if (_sim.Borders != null)
+                    {
+                        BorderCrossing nearest = _sim.Borders.Nearest(here4.Centroid, 6000f);
+                        if (nearest != null)
+                        {
+                            ShowToast(nearest.DisplayName(_russian) + ": " +
+                                BorderSystem.PostureName(_sim.Borders.Posture(nearest, player, player),
+                                    _russian), 2600);
+                        }
+                    }
+                    break;
+
+                case 5:         // elections - put money into the campaign
+                    if (!_sim.CanPlayerRun(player))
+                    {
+                        ShowToast(T("Лимит сроков: баллотироваться нельзя",
+                            "Term limit: you cannot stand again"), 2800);
+                        break;
+                    }
+                    if (_sim.FundCampaign(player, 5_000_000.0))
+                    {
+                        ShowToast(T("Фонд кампании: ", "Campaign funds: ") +
+                            Num((long)player.Office.CampaignFunds), 2400);
+                    }
+                    else
+                    {
+                        ShowToast(T("В казне нет денег на кампанию",
+                            "The treasury cannot fund a campaign"), 2600);
+                    }
+                    break;
+
+                case 6:         // government - fill the first vacancy
+                    FillVacancy(player);
+                    break;
+
                 default:        // overview
                     _sim.Log(T("сохранение по запросу игрока", "manual save requested"));
                     ShowToast(T("Сохранение...", "Saving..."), 1800);
                     break;
             }
+        }
+
+        /// <summary>Seat the best candidate available for the first empty chair.</summary>
+        private void FillVacancy(Nation player)
+        {
+            string[] roleOrder = { "Prime", "Defence", "Interior", "Finance", "Foreign", "Transport", "Health" };
+            for (int i = 0; i < roleOrder.Length; i++)
+            {
+                MinistryRole role;
+                if (!Enum.TryParse(roleOrder[i], true, out role)) continue;
+                if (player.Ministers.ContainsKey(role)) continue;
+
+                List<Candidate> pool = _sim.CandidatesFor(player.Id, roleOrder[i]);
+                if (pool.Count == 0) continue;
+
+                if (_sim.AppointMinister(player, role, pool[0]))
+                {
+                    ShowToast(pool[0].DisplayName(_russian) + " — " +
+                        Minister.RoleName(role, _russian), 2800);
+                }
+                else
+                {
+                    ShowToast(T("Казна не потянет это назначение",
+                        "The treasury cannot carry that salary"), 2600);
+                }
+                return;
+            }
+            ShowToast(T("Вакансий нет", "No vacancies"), 2200);
         }
 
         private Nation PlayerNation()
@@ -211,19 +279,25 @@ namespace OnyxNations.Presentation
                 T("ПЛАНШЕТ — СВОДКА МИРА", "TABLET - WORLD STATUS"),
                 T("ПЛАНШЕТ — АРМИЯ", "TABLET - ARMY"),
                 T("ПЛАНШЕТ — МИД", "TABLET - DIPLOMACY"),
-                T("ПЛАНШЕТ — БЮДЖЕТ", "TABLET - BUDGET")
+                T("ПЛАНШЕТ — БЮДЖЕТ", "TABLET - BUDGET"),
+                T("ПЛАНШЕТ — ГРАНИЦЫ", "TABLET - BORDERS"),
+                T("ПЛАНШЕТ — ВЫБОРЫ", "TABLET - ELECTIONS"),
+                T("ПЛАНШЕТ — ПРАВИТЕЛЬСТВО", "TABLET - GOVERNMENT")
             };
             Draw.Text(T("ПРЕЗИДЕНТСКИЙ ", "PRESIDENTIAL ") + titles[_tab] +
-                "   [" + (_tab + 1) + "/4]   " + T("ДЕНЬ ", "DAY ") + _sim.Day +
+                "   [" + (_tab + 1) + "/" + TabCount + "]   " + T("ДЕНЬ ", "DAY ") + _sim.Day +
                 T("   БОЁВ ", "   BATTLES ") + _sim.BattlesFought +
                 T("   ЗАХВАТОВ ", "   CAPTURES ") + _sim.Captures,
-                0.17f, 0.125f, 0.36f, 235, 242, 255, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
+                0.17f, 0.125f, 0.34f, 235, 242, 255, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
 
             switch (_tab)
             {
                 case 1: DrawArmyScreen(); return;
                 case 2: DrawDiplomacyScreen(); return;
                 case 3: DrawBudgetScreen(); return;
+                case 4: DrawBorderScreen(); return;
+                case 5: DrawElectionScreen(); return;
+                case 6: DrawGovernmentScreen(); return;
             }
 
             // ---- nation cards ------------------------------------------------
@@ -318,6 +392,192 @@ namespace OnyxNations.Presentation
 
             Draw.Text(T("* столица      F6 — закрыть", "* capital      F6 - close"),
                 0.17f, 0.845f, 0.28f, 140, 156, 190, 255, false, 0f, 0.83f);
+        }
+
+        // ------------------------------------------------------- border screen
+        private void DrawBorderScreen()
+        {
+            BorderSystem borders = _sim != null ? _sim.Borders : null;
+            Nation player = PlayerNation();
+            float y = 0.20f;
+
+            if (borders == null || borders.Crossings.Count == 0)
+            {
+                Draw.Text(T("Границ нет: сопредельных регионов с разными владельцами не найдено.",
+                            "No borders: no adjacent regions are held by different states."),
+                    0.17f, y, 0.30f, 200, 215, 240, 255, false, 0f, 0.78f);
+                return;
+            }
+
+            Draw.Text(T("ПОГРАНИЧНЫЕ ПЕРЕХОДЫ", "BORDER CROSSINGS"), 0.17f, y, 0.34f,
+                150, 175, 220, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
+            y += 0.05f;
+
+            for (int i = 0; i < borders.Crossings.Count && i < 12; i++)
+            {
+                BorderCrossing c = borders.Crossings[i];
+                Region a = _world.RegionById(c.RegionAId);
+                Nation owner = a != null ? _world.NationById(a.OwnerId) : null;
+                BorderPosture posture = borders.Posture(c, owner, player);
+
+                int r = 225, g = 235, b = 250;
+                if (posture == BorderPosture.Hostile) { r = 255; g = 130; b = 110; }
+                else if (posture == BorderPosture.Closed) { r = 250; g = 190; b = 120; }
+                else if (posture == BorderPosture.Inspect) { r = 240; g = 220; b = 130; }
+
+                Draw.Rect(0.5f, y + 0.014f, 0.68f, 0.028f, 255, 255, 255, 8);
+                Draw.Text(c.DisplayName(_russian), 0.175f, y, 0.27f, r, g, b, 255, false, 0f, 0.83f);
+                Draw.Text((owner != null ? owner.DisplayShort(_russian) : "?") + "  " +
+                    BorderSystem.PostureName(posture, _russian),
+                    0.430f, y, 0.26f, 170, 188, 218, 255, false, 0f, 0.83f);
+                Draw.Text(T("экипаж ", "crew ") +
+                    (c.Manning * 100f).ToString("0", CultureInfo.InvariantCulture) + "%" +
+                    (c.Damage > 0f
+                        ? T("   повреждён ", "   damaged ") +
+                          (c.Damage * 100f).ToString("0", CultureInfo.InvariantCulture) + "%"
+                        : ""),
+                    0.610f, y, 0.26f, 165, 182, 214, 255, false, 0f, 0.83f);
+                y += 0.032f;
+            }
+
+            Draw.Text(T("Переходы строятся по смежности регионов: захват региона передвигает границу.",
+                        "Crossings are derived from region adjacency: capturing a region moves the border."),
+                0.17f, 0.845f, 0.27f, 140, 156, 190, 255, false, 0f, 0.83f);
+        }
+
+        // ----------------------------------------------------- election screen
+        private void DrawElectionScreen()
+        {
+            Nation player = PlayerNation();
+            if (player == null) return;
+
+            Presidency office = player.Office;
+            float y = 0.20f;
+            Draw.Text(T("ВЫБОРЫ И РЕЙТИНГ", "ELECTIONS AND RATING"), 0.17f, y, 0.34f,
+                150, 175, 220, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
+            y += 0.05f;
+
+            Row(y, T("До выборов, дней", "Days to election"), office.DaysUntilElection.ToString(CultureInfo.InvariantCulture), 235, 242, 255);
+            y += 0.032f;
+            Row(y, T("Срок", "Term"), office.TermsServed + " / " + _sim.Rules.MaxTerms, 235, 242, 255);
+            y += 0.032f;
+            Row(y, T("Правящая партия", "Ruling party"),
+                RulingPartyName(player), 235, 242, 255);
+            y += 0.032f;
+            Row(y, T("Рейтинг", "Approval"),
+                player.Approval.ToString("0", CultureInfo.InvariantCulture), 190, 225, 255);
+            y += 0.032f;
+            Row(y, T("Фонд партии", "Campaign funds"),
+                "$" + Num((long)office.CampaignFunds), 150, 230, 170);
+            y += 0.032f;
+            Row(y, T("Фонд оппонентов", "Challenger funds"),
+                "$" + Num((long)office.ChallengerFunds), 255, 170, 150);
+            y += 0.055f;
+
+            Draw.Text(T("ОПРОСЫ", "POLLS"), 0.17f, y, 0.32f, 150, 175, 220, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
+            y += 0.038f;
+
+            ElectionResult poll = _sim.Poll(player);
+            for (int i = 0; i < poll.Lines.Count && i < 6; i++)
+            {
+                BallotLine line = poll.Lines[i];
+                Party party = player.PartyById(line.PartyId);
+                float share = line.Share * 100f;
+
+                Draw.Rect(0.5f, y + 0.010f, 0.68f, 0.024f, party != null ? party.R : 90,
+                    party != null ? party.G : 100, party != null ? party.B : 120, 40);
+
+                // bar: 0..60% of the vote drawn across 0.30 of the screen
+                float barW = Math.Min(0.30f, (float)(line.Share * 0.50));
+                if (barW > 0.002f)
+                {
+                    Draw.Rect(0.355f + barW / 2f, y + 0.010f, barW, 0.016f,
+                        party != null ? party.R : 150, party != null ? party.G : 160,
+                        party != null ? party.B : 180, 220);
+                }
+
+                Draw.Text(party != null ? party.DisplayName(_russian) : line.PartyId,
+                    0.175f, y, 0.27f, 225, 235, 250, 255, false, 0f, 0.83f);
+                Draw.Text(share.ToString("0.0", CultureInfo.InvariantCulture) + "%",
+                    0.665f, y, 0.26f, 225, 235, 250, 255, false, 0f, 0.83f);
+                y += 0.030f;
+            }
+
+            string hint = _sim.CanPlayerRun(player)
+                ? T("ENTER — влить 5 млн в кампанию", "ENTER - put $5M into the campaign")
+                : T("Лимит сроков исчерпан — баллотироваться нельзя",
+                    "Term limit reached - you cannot stand again");
+            Draw.Text(hint, 0.17f, 0.845f, 0.27f, 140, 156, 190, 255, false, 0f, 0.83f);
+        }
+
+        private static string RulingPartyName(Nation n)
+        {
+            Party p = n.RulingParty;
+            return p != null ? p.NameRu : "-";
+        }
+
+        // --------------------------------------------------- government screen
+        private void DrawGovernmentScreen()
+        {
+            Nation player = PlayerNation();
+            if (player == null) return;
+
+            float y = 0.20f;
+            Draw.Text(T("КАБИНЕТ МИНИСТРОВ", "CABINET"), 0.17f, y, 0.34f,
+                150, 175, 220, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
+            y += 0.05f;
+
+            string[] roleOrder = { "Prime", "Defence", "Interior", "Finance", "Foreign", "Transport", "Health" };
+            foreach (string roleName in roleOrder)
+            {
+                MinistryRole role;
+                if (!Enum.TryParse(roleName, true, out role)) continue;
+                Minister m;
+                player.Ministers.TryGetValue(role, out m);
+
+                Draw.Rect(0.5f, y + 0.010f, 0.68f, 0.024f, 255, 255, 255, 8);
+                Draw.Text(Minister.RoleName(role, _russian), 0.175f, y, 0.26f,
+                    150, 175, 220, 255, false, 0f, 0.83f);
+
+                if (m == null)
+                {
+                    Draw.Text(T("— вакантно —", "— vacant —"), 0.400f, y, 0.26f,
+                        255, 170, 150, 255, false, 0f, 0.83f);
+                }
+                else
+                {
+                    Draw.Text(m.DisplayName(_russian), 0.400f, y, 0.26f, 225, 235, 250, 255, false, 0f, 0.83f);
+                    Draw.Text(T("комп. ", "comp. ") +
+                        (m.Competence * 100f).ToString("0", CultureInfo.InvariantCulture) + "%" +
+                        T("  лоял. ", "  loy. ") +
+                        (m.Loyalty * 100f).ToString("0", CultureInfo.InvariantCulture) + "%" +
+                        (m.Task != MinisterTask.None
+                            ? "  " + Minister.TaskName(m.Task, _russian)
+                            : ""),
+                        0.600f, y, 0.26f, 165, 182, 214, 255, false, 0f, 0.83f);
+                }
+                y += 0.030f;
+            }
+
+            y += 0.020f;
+            Draw.Text(T("КОМАНДУЮЩИЕ", "GENERALS"), 0.17f, y, 0.32f, 150, 175, 220, 255, false, 0f, 0.83f, Draw.FontChaletCologne);
+            y += 0.038f;
+
+            for (int i = 0; i < player.Generals.Count && i < 5; i++)
+            {
+                General g = player.Generals[i];
+                Draw.Text(g.Name, 0.175f, y, 0.27f, 225, 235, 250, 255, false, 0f, 0.83f);
+                Draw.Text(T("мастерство ", "skill ") +
+                    (g.Skill * 100f).ToString("0", CultureInfo.InvariantCulture) + "%" +
+                    T("   бонус армии ", "   army bonus ") +
+                    ("+" + ((0.05f + 0.25f * g.Skill) * 100f).ToString("0", CultureInfo.InvariantCulture) + "%"),
+                    0.430f, y, 0.26f, 165, 182, 214, 255, false, 0f, 0.83f);
+                y += 0.030f;
+            }
+
+            Draw.Text(T("ENTER — назначить лучшего доступного кандидата на вакансию",
+                        "ENTER - appoint the best available candidate to a vacancy"),
+                0.17f, 0.845f, 0.27f, 140, 156, 190, 255, false, 0f, 0.83f);
         }
 
         // --------------------------------------------------------- army screen

@@ -178,11 +178,14 @@ def main():
         for tname in TYPE_RE.findall(raw):
             types.setdefault(tname, set())
 
-        # enum members: `A,` / `B = 3,` inside an enum body
+        # enum members: `A,` / `B = 3,` inside an enum body. Trailing comments
+        # are stripped first — most enums here are annotated member by member.
         for tname, body in ENUM_RE.findall(raw):
             members = types.setdefault(tname, set())
-            for chunk in body.replace("\r", "").split(","):
-                m = ENUM_MEMBER_RE.match(chunk)
+            body = re.sub(r'//[^\n]*', '', body)
+            body = re.sub(r'/\*.*?\*/', '', body, flags=re.S)
+            for chunk in body.split(","):
+                m = ENUM_MEMBER_RE.match(chunk.strip())
                 if m:
                     members.add(m.group(1))
 
@@ -237,10 +240,17 @@ def main():
                 continue
             problems.append("%s: unknown type '%s'" % (rel, tname))
 
-        for tname, member in QUALIFIED_RE.findall(code):
+        # Some names are both a type (Core/Settings.cs) and a field of another type
+    # (BorderSystem.Settings). If the member exists anywhere in the project the
+    # reference is plausible, so it is not worth a warning.
+    all_members = set()
+    for members in types.values():
+        all_members |= members
+
+    for tname, member in QUALIFIED_RE.findall(code):
             if tname not in types:
                 continue
-            if member in types[tname] or member in EXTERNAL_MEMBERS:
+            if member in types[tname] or member in EXTERNAL_MEMBERS or member in all_members:
                 continue
             # consts and fields declared inline without a modifier are common
             if re.search(r'\b%s\b' % re.escape(member), raw):

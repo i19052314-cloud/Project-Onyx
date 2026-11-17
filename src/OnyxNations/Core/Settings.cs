@@ -32,6 +32,8 @@ namespace OnyxNations.Core
         public int MaxSquads = 2;
         public int MaxSpawnedSoldiers = 12;
         public int MaxSpawnedVehicles = 4;
+        public int MaxBorderPosts = 2;
+        public int MaxBorderGuards = 8;
 
         // ---- keys -----------------------------------------------------------
         public WF.Keys TabletKey = WF.Keys.F6;
@@ -66,6 +68,8 @@ namespace OnyxNations.Core
             s.MaxSquads = ini.GetInt("Army", "MaxSquads", s.MaxSquads);
             s.MaxSpawnedSoldiers = ini.GetInt("Army", "MaxSpawnedSoldiers", s.MaxSpawnedSoldiers);
             s.MaxSpawnedVehicles = ini.GetInt("Army", "MaxSpawnedVehicles", s.MaxSpawnedVehicles);
+            s.MaxBorderPosts = ini.GetInt("Borders", "MaxBorderPosts", s.MaxBorderPosts);
+            s.MaxBorderGuards = ini.GetInt("Borders", "MaxBorderGuards", s.MaxBorderGuards);
 
             s.TabletKey = ini.GetKey("Input", "TabletKey", s.TabletKey);
             s.TabNextKey = ini.GetKey("Input", "TabNextKey", s.TabNextKey);

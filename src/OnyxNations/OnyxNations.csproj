@@ -90,10 +90,14 @@
     <Compile Include="Sim\EconomySim.cs" />
     <Compile Include="Sim\Diplomacy.cs" />
     <Compile Include="Sim\AiBrain.cs" />
+    <Compile Include="Sim\Borders.cs" />
+    <Compile Include="Sim\Elections.cs" />
+    <Compile Include="Sim\Appointments.cs" />
     <Compile Include="Bridge\IOnyxBridge.cs" />
     <Compile Include="Bridge\NullBridge.cs" />
     <Compile Include="Presentation\Draw.cs" />
     <Compile Include="Presentation\ArmySpawner.cs" />
+    <Compile Include="Presentation\BorderSpawner.cs" />
     <Compile Include="Presentation\Overlay.cs" />
     <Compile Include="Presentation\RegionTracker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

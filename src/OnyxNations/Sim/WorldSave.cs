@@ -107,6 +107,7 @@ namespace OnyxNations.Sim
         [DataMember(Name = "Regions")] public List<RegionSaveData> Regions = new List<RegionSaveData>();
         [DataMember(Name = "Nations")] public List<NationSaveData> Nations = new List<NationSaveData>();
         [DataMember(Name = "Units")] public List<UnitSaveData> Units = new List<UnitSaveData>();
+        [DataMember(Name = "Crossings")] public List<CrossingSaveData> Crossings = new List<CrossingSaveData>();
 
         public static WorldSaveData CreateEmpty()
         {

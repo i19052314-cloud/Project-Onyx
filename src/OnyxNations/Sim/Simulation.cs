@@ -152,7 +152,20 @@ namespace OnyxNations.Sim
                     AiDecide(_world.Nations[i]);
                 }
             }
+
+            for (int i = 0; i < _world.Nations.Count; i++)
+            {
+                StepElection(_world.Nations[i]);
+            }
+
+            if (Borders != null) Borders.StepDay();
         }
+
+        /// <summary>
+        /// The physical border. Owned by the simulation because a change of
+        /// ownership has to redraw it immediately, not on the next save load.
+        /// </summary>
+        public BorderSystem Borders { get; set; }
 
         // ---------------------------------------------------------- movement --
         private void MoveUnit(Nation nation, Unit unit, float dt)

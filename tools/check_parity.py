@@ -241,11 +241,88 @@ FINGERPRINTS = [
         "Uniform(0.75f, 1.25f)",
         "1.0f + defender.DefenceBonus()",
     ]),
+    ("Sim/Elections.cs", [
+        "(n.Approval - 50f) / 200f",
+        "(n.Morale - 0.60f) * 0.20f",
+        "(n.Unemployment - 0.06f) * 1.20f",
+        "Math.Max(0f, n.Inflation - 0.05f) * 1.50f",
+        "(n.Stability - 0.70f) * 0.15f",
+        "Rules.IncumbencyBonus",
+        "Rules.WarRallyBonus",
+        "Rules.ScandalPenalty",
+        "Rules.MinTurnout",
+        "0.08 * (funds / (funds + 500000.0))",
+        "Math.Abs(party.TaxBias) * 0.10f",
+        "0.24f + winner.TaxBias",
+        "0.18f + 0.34f * winner.Hawkishness",
+    ]),
+    ("Sim/Borders.cs", [
+        "Geometry.DistanceToPolygonEdge",
+        "SharedEdgeMidpoint(a, b)",
+    ]),
+    ("Sim/Appointments.cs", [
+        "candidate.Salary * 30.0",
+        "0.5f + 0.3f * candidate.Loyalty",
+        "0.05f + 0.10f * m.Loyalty",
+    ]),
     ("Sim/Simulation.cs", [
         "SimTuning.SecondsPerGameDay",
         "SimTuning.AiDecisionEveryGameDays",
     ]),
 ]
+
+
+def check_elections():
+    """Election rules and parties are authored in Parties.xml and read by both
+    sides. Compare what the reference model ended up with against the file, so a
+    rename on either side cannot silently fall back to a default."""
+    print("=== DATA: Parties.xml vs sim_reference election rules ===")
+    sim = ref.build_demo()
+    root = ET.parse(os.path.join(DATA, "Parties.xml")).getroot()
+    rules_el = root.find("ElectionRules")
+
+    mapping = [
+        ("term_days", "TermDays", int),
+        ("max_terms", "MaxTerms", int),
+        ("campaign_days", "CampaignDays", int),
+        ("min_turnout", "MinTurnout", float),
+        ("max_turnout", "MaxTurnout", float),
+        ("incumbency_bonus", "IncumbencyBonus", float),
+        ("war_rally_bonus", "WarRallyBonus", float),
+        ("scandal_penalty", "ScandalPenalty", float),
+        ("challenger_funds_per_day", "ChallengerFundsPerDay", float),
+        ("player_funds_per_day", "PlayerFundsPerDay", float),
+    ]
+    for snake, pascal, caster in mapping:
+        raw = rules_el.get(pascal)
+        check(raw is not None, "Parties.xml declares %s" % pascal)
+        if raw is None:
+            continue
+        check(abs(sim.rules[snake] - caster(raw)) < 1e-9,
+              "election rule %s == %s (%s vs %s)"
+              % (snake, pascal, sim.rules[snake], caster(raw)))
+
+    for el in root.find("Parties").findall("Party"):
+        nid = el.get("Nation")
+        nation = sim.nations.get(nid)
+        if nation is None:
+            continue
+        party = nation.party_by_id(el.get("ID"))
+        check(party is not None, "party '%s' was loaded into nation '%s'" % (el.get("ID"), nid))
+        if party is None:
+            continue
+        check(party.name == (el.get("NameRu") or el.get("Name")), "party '%s' name" % party.id)
+        check(abs(party.tax_bias - float(el.get("TaxBias"))) < 1e-9, "party '%s' tax bias" % party.id)
+        check(abs(party.hawkishness - float(el.get("Hawkishness"))) < 1e-9,
+              "party '%s' hawkishness" % party.id)
+        check(abs(party.popularity - float(el.get("Popularity"))) < 1e-9,
+              "party '%s' popularity" % party.id)
+
+    for nid, nation in sim.nations.items():
+        check(bool(nation.office.ruling_party_id),
+              "nation '%s' has a ruling party after loading" % nid)
+        check(nation.party_by_id(nation.office.ruling_party_id) is not None,
+              "nation '%s' ruling party resolves to a real party" % nid)
 
 
 def check_formulas():
@@ -264,6 +341,7 @@ def main():
     check_constants()
     check_unit_types()
     check_armies()
+    check_elections()
     check_formulas()
 
     print("\n%d checks run, %d failure(s)" % (CHECKS[0], len(FAILURES)))

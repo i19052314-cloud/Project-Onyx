@@ -202,6 +202,14 @@ class Nation(object):
         self.casualties = 0
         self.at_war = set()
         self.relations = {}
+        self.office = Presidency()
+        self.parties = []
+
+    def party_by_id(self, pid):
+        for p in self.parties:
+            if p.id == pid:
+                return p
+        return None
 
     # -- derived ----------------------------------------------------------
     def regions(self, world):
@@ -240,6 +248,220 @@ class Nation(object):
         return 0.30 * (m.competence if m else 0.2)
 
 
+# ------------------------------------------------------------------ borders --
+# A crossing sits at the midpoint between two adjacent regions' centroids:
+# that is exactly where the Voronoi boundary between the two cells runs. So the
+# border is derived from the map, never authored as a list that can go stale.
+BORDER_SETTINGS = {
+    "checkpoint_radius": 55.0,
+    "guards_per_post": 2,
+    "manning_per_day": 0.25,
+    "decay_per_day_without_garrison": 0.10,
+    "open_above": 40,
+    "inspect_above": -20,
+}
+
+
+class BorderCrossing(object):
+    def __init__(self, a, b, position, name=""):
+        self.id = "|".join(sorted((a, b)))
+        self.a, self.b = a, b
+        self.position = position
+        self.name = name or ("Checkpoint %s/%s" % (a, b))
+        self.manning = 0.5
+        self.damage = 0.0
+
+    @property
+    def destroyed(self):
+        return self.damage >= 1.0
+
+
+def dist_to_segment(p, a, b):
+    ax, ay = a
+    bx, by = b
+    px, py = p
+    dx, dy = bx - ax, by - ay
+    if dx == 0 and dy == 0:
+        return math.hypot(px - ax, py - ay)
+    t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy)))
+    return math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+
+
+def dist_to_polygon_edge(p, poly):
+    best = None
+    n = len(poly)
+    for i in range(n):
+        d = dist_to_segment(p, poly[i], poly[(i + 1) % n])
+        if best is None or d < best:
+            best = d
+    return best
+
+
+def shared_edge_midpoint(poly_a, poly_b, tol=2.0):
+    """Midpoint of the edge two neighbouring cells actually share.
+
+    The naive answer — the midpoint between the two centroids — is only right
+    when the straight line between them stays inside the pair. Real Voronoi
+    cells bend, and two of the six crossings on this map fell in a third
+    region. Placing the post on the shared edge fixes it, and is what the C#
+    does too (Geometry.DistanceToPolygonEdge).
+    """
+    ends = []
+    for v in poly_a:
+        if dist_to_polygon_edge(v, poly_b) <= tol:
+            ends.append(v)
+    for v in poly_b:
+        if dist_to_polygon_edge(v, poly_a) <= tol:
+            ends.append(v)
+    if len(ends) >= 2:
+        best_pair, best_d = (ends[0], ends[1]), 0.0
+        for i in range(len(ends)):
+            for j in range(i + 1, len(ends)):
+                d = math.hypot(ends[i][0] - ends[j][0], ends[i][1] - ends[j][1])
+                if d > best_d:
+                    best_d, best_pair = d, (ends[i], ends[j])
+        return ((best_pair[0][0] + best_pair[1][0]) / 2.0,
+                (best_pair[0][1] + best_pair[1][1]) / 2.0)
+    return None
+
+
+def compute_borders(world):
+    """Crossings between adjacent regions held by different states."""
+    out = []
+    regions = world.regions
+    for rid, r in regions.items():
+        for nb in r.neighbours:
+            other = regions.get(nb)
+            if other is None or rid >= nb:      # each unordered pair once
+                continue
+            if r.owner == other.owner:
+                continue
+            mid = shared_edge_midpoint(r.polygon, other.polygon) or (
+                (r.centroid[0] + other.centroid[0]) / 2.0,
+                (r.centroid[1] + other.centroid[1]) / 2.0)
+            out.append(BorderCrossing(rid, nb, mid))
+    return out
+
+
+def posture(crossing, owner, traveller):
+    """What a guard does to a citizen of `traveller`."""
+    if crossing.destroyed:
+        return "open"
+    if traveller.id in owner.at_war or owner.id in traveller.at_war:
+        return "hostile"
+    rel = owner.relations.get(traveller.id, 0)
+    if rel >= BORDER_SETTINGS["open_above"]:
+        return "open"
+    if rel >= BORDER_SETTINGS["inspect_above"]:
+        return "inspect"
+    return "closed"
+
+
+# ---------------------------------------------------------------- elections --
+# Defaults; overridden by OnyxNations/Data/Parties.xml at build time, so the
+# rules live in exactly one place.
+ELECTION_RULES = {
+    "term_days": 360,
+    "max_terms": 2,
+    "campaign_days": 30,
+    "min_turnout": 0.35,
+    "max_turnout": 0.85,
+    "incumbency_bonus": 0.06,
+    "war_rally_bonus": 0.10,
+    "scandal_penalty": 0.25,
+    "challenger_funds_per_day": 45000.0,
+    "player_funds_per_day": 60000.0,
+}
+
+
+def load_parties(nations):
+    """Parties and election rules from OnyxNations/Data/Parties.xml."""
+    import xml.etree.ElementTree as ET
+    path = os.path.join(DATA, "Parties.xml")
+    if not os.path.isfile(path):
+        return dict(ELECTION_RULES)
+
+    root = ET.parse(path).getroot()
+    rules = dict(ELECTION_RULES)
+    rules_el = root.find("ElectionRules")
+    if rules_el is not None:
+        for key, caster in (("term_days", int), ("max_terms", int), ("campaign_days", int),
+                            ("min_turnout", float), ("max_turnout", float),
+                            ("incumbency_bonus", float), ("war_rally_bonus", float),
+                            ("scandal_penalty", float), ("challenger_funds_per_day", float),
+                            ("player_funds_per_day", float)):
+            raw = rules_el.get(pascal(key))
+            if raw not in (None, ""):
+                rules[key] = caster(raw)
+
+    for el in root.find("Parties").findall("Party"):
+        nid = el.get("Nation")
+        if nid not in nations:
+            continue
+        party = Party(el.get("ID"), nid, el.get("NameRu") or el.get("Name"),
+                      float(el.get("TaxBias")), float(el.get("Hawkishness")),
+                      float(el.get("Popularity")),
+                      el.get("IsPlayerParty") == "true")
+        nations[nid].parties.append(party)
+        if party.is_player_party:
+            office = nations[nid].office
+            office.player_party_id = party.id
+            office.player_is_president = True
+            office.incumbent_name = party.name
+            office.ruling_party_id = party.id
+
+    # A nation with no ruling party named in the file starts with its most
+    # popular one, so the election screen is never empty.
+    for nid, n in nations.items():
+        if n.office.ruling_party_id or not n.parties:
+            continue
+        best = max(n.parties, key=lambda p: p.popularity)
+        n.office.ruling_party_id = best.id
+        if not n.office.incumbent_name:
+            n.office.incumbent_name = best.name
+    return rules
+
+
+def pascal(snake):
+    return "".join(part[:1].upper() + part[1:] for part in snake.split("_"))
+
+
+def office_funds(n, incumbent):
+    return n.office.campaign_funds if incumbent else n.office.challenger_funds
+
+
+class Presidency(object):
+    def __init__(self):
+        self.term_days = 360
+        self.days_in_term = 0
+        self.terms_served = 0
+        self.player_is_president = False
+        self.incumbent_name = ""
+        self.player_party_id = ""
+        self.ruling_party_id = ""
+        self.campaign_days = 0
+        self.campaign_funds = 0.0
+        self.challenger_funds = 0.0
+        self.last_turnout = 0.0
+        self.last_winner = ""
+
+    @property
+    def days_until_election(self):
+        return max(0, self.term_days - self.days_in_term)
+
+
+class Party(object):
+    def __init__(self, pid, nation, name, tax_bias, hawkishness, popularity,
+                 is_player_party=False):
+        self.id = pid
+        self.nation = nation
+        self.name = name
+        self.tax_bias = tax_bias
+        self.hawkishness = hawkishness
+        self.popularity = popularity
+        self.is_player_party = is_player_party
+
+
 # --------------------------------------------------------------- simulation --
 class Simulation(object):
     def __init__(self, world, nations, seed=1337):
@@ -248,6 +470,10 @@ class Simulation(object):
         self.rng = Rng(seed)
         self.time_minutes = 0.0
         self.real_seconds = 0.0
+        self.rules = dict(ELECTION_RULES)
+        self.last_results = {}
+        self.borders = []
+        self.border_state = {}
         self.day = 0
         self.events = []
         self.unit_types = dict((t["id"], UnitType(t)) for t in UNIT_TYPES)
@@ -467,6 +693,152 @@ class Simulation(object):
         if self.day % 3 == 0:
             for nid in self.nations:
                 self.ai_decide(self.nation(nid))
+        for nid in self.nations:
+            self.step_election(self.nation(nid))
+        self.step_borders()
+
+    # ------------------------------------------------------------ elections --
+    def step_election(self, n):
+        office = n.office
+        office.term_days = self.rules["term_days"]
+        office.days_in_term += 1
+
+        left = office.days_until_election
+        if left <= self.rules["campaign_days"]:
+            office.campaign_days = self.rules["campaign_days"] - left
+            office.campaign_funds += self.rules["player_funds_per_day"]
+            office.challenger_funds += self.rules["challenger_funds_per_day"]
+
+        if office.days_in_term < office.term_days or not n.parties:
+            return
+
+        result = self.run_election(n)
+        self.last_results[n.id] = result
+        self.apply_result(n, result)
+
+    def share_for(self, n, party, incumbent):
+        record = ((n.approval - 50.0) / 200.0
+                  + (n.morale - 0.60) * 0.20
+                  - (n.unemployment - 0.06) * 1.20
+                  - max(0.0, n.inflation - 0.05) * 1.50
+                  + (n.stability - 0.70) * 0.15)
+
+        if n.at_war:
+            war_term = self.rules["war_rally_bonus"] * (1.0 - n.war_weariness * 2.0)
+            record += war_term if incumbent else -war_term * 0.5
+        if n.approval < 25.0:
+            record -= self.rules["scandal_penalty"]
+
+        share = party.popularity
+        pull = party.hawkishness * 0.10
+        share += pull if n.at_war else -pull * 0.5
+
+        if incumbent:
+            share += record + self.rules["incumbency_bonus"]
+        else:
+            share += record * 0.35
+
+        funds = office_funds(n, incumbent)
+        share += 0.08 * (funds / (funds + 500000.0))
+        share -= abs(party.tax_bias) * 0.10
+        return max(0.01, share)
+
+    def compute_ballot(self, n, noise=True):
+        lines = []
+        ruling = n.office.ruling_party_id
+        for p in n.parties:
+            incumbent = (p.id == ruling)
+            if incumbent and n.office.terms_served >= self.rules["max_terms"]:
+                incumbent = False        # term-limited: a successor, not the leader
+            share = self.share_for(n, p, incumbent)
+            if noise:
+                share *= self.rng.uniform(0.85, 1.15)
+            lines.append((p.id, share))
+        total = sum(s for _, s in lines) or 1.0
+        lines = [(pid, s / total) for pid, s in lines]
+        lines.sort(key=lambda kv: -kv[1])
+
+        anger = (max(0.0, (50.0 - n.approval) / 50.0)
+                 + (0.15 if n.at_war else 0.0)
+                 + max(0.0, 0.40 - n.morale if n.morale < 0.40 else 0.0))
+        turnout = clamp(self.rules["min_turnout"]
+                        + anger * (self.rules["max_turnout"] - self.rules["min_turnout"]),
+                        self.rules["min_turnout"], self.rules["max_turnout"])
+
+        return {
+            "winner": lines[0][0] if lines else "",
+            "lines": lines,
+            "turnout": turnout,
+            "incumbent_won": bool(lines) and lines[0][0] == ruling,
+            "day": self.day,
+        }
+
+    def poll(self, n):
+        """Live poll: the same maths without election-day noise."""
+        return self.compute_ballot(n, noise=False)
+
+    def run_election(self, n):
+        return self.compute_ballot(n, noise=True)
+
+    def apply_result(self, n, result):
+        office = n.office
+        winner = n.party_by_id(result["winner"])
+        previous = n.party_by_id(office.ruling_party_id)
+        player_lost = office.player_is_president and not result["incumbent_won"]
+
+        office.ruling_party_id = result["winner"]
+        office.last_winner = result["winner"]
+        office.last_turnout = result["turnout"]
+        office.days_in_term = 0
+        office.terms_served += 1
+        office.campaign_days = 0
+        office.campaign_funds = 0.0
+        office.challenger_funds = 0.0
+
+        if player_lost:
+            office.player_is_president = False
+            office.incumbent_name = winner.name if winner else ""
+            self.log("ВЫБОРЫ: %s — победа «%s», явка %.0f%%. Пост потерян."
+                     % (n.name, winner.name if winner else "?", result["turnout"] * 100))
+        else:
+            self.log("ВЫБОРЫ: %s — победа «%s», явка %.0f%%"
+                     % (n.name, winner.name if winner else "?", result["turnout"] * 100))
+
+        if winner is None:
+            return
+        n.tax_rate = lerp(n.tax_rate, clamp(0.24 + winner.tax_bias, 0.05, 0.60), 0.35)
+        n.army_funding = lerp(n.army_funding,
+                              clamp(0.18 + 0.34 * winner.hawkishness, 0.05, 0.55), 0.35)
+        if previous is not None and previous.id != winner.id:
+            n.stability = clamp(n.stability - 0.03)
+
+    def fund_campaign(self, n, amount):
+        if amount <= 0 or n.treasury < amount:
+            return False
+        n.treasury -= amount
+        n.office.campaign_funds += amount
+        return True
+
+    def can_player_run(self, n):
+        return n.office.player_is_president and n.office.terms_served < self.rules["max_terms"]
+
+    # -------------------------------------------------------------- borders --
+    def step_borders(self):
+        self.borders = compute_borders(self.world)
+        # carry over manning/damage for crossings that still exist
+        for c in self.borders:
+            if c.id in self.border_state:
+                c.manning, c.damage = self.border_state[c.id]
+        for c in self.borders:
+            owner = self.nation(self.world.regions[c.a].owner)
+            garrisoned = any(self.dist(u.position, c.position) < 2500.0
+                             for u in owner.units)
+            delta = (BORDER_SETTINGS["manning_per_day"] if garrisoned
+                     else -BORDER_SETTINGS["decay_per_day_without_garrison"])
+            c.manning = clamp(c.manning + delta)
+            if c.damage > 0 and garrisoned:
+                c.damage = clamp(c.damage - 0.15)
+            self.border_state[c.id] = (c.manning, c.damage)
 
     def step_economy(self, n):
         regions = n.regions(self.world)
@@ -792,6 +1164,8 @@ def build_demo(seed=1337):
         r.centroid = (float(cen.get("X")), float(cen.get("Y")))
         nb = el.find("Neighbours").text or ""
         r.neighbours = [x for x in nb.split("|") if x]
+        r.polygon = [(float(v.get("X")), float(v.get("Y")))
+                     for v in el.find("Polygon").findall("Vertex")]
         world.regions[r.id] = r
 
     nations = {}
@@ -818,6 +1192,7 @@ def build_demo(seed=1337):
         nations[nid] = n
 
     sim = Simulation(world, nations, seed=seed)
+    sim.rules = load_parties(nations)
     sim.player_nation = "rsa"
 
     # starting armies, raised near each capital
@@ -1006,6 +1381,126 @@ def main():
     growth_before = calm_treasury
     ok(r2.units and len(r2.units) >= 13, "units can be raised (now %d)" % len(r2.units))
     ok(r2.gdp > 0, "economy keeps running with a bigger army")
+
+    # ---- border geometry: the crossing really is on the boundary -------------
+    border_world = build_demo(1337).world
+    crossings = compute_borders(border_world)
+    ok(len(crossings) > 0, "borders exist between states held by different owners (%d)"
+       % len(crossings))
+    on_edge = 0
+    for c in crossings:
+        a = border_world.regions[c.a]
+        b = border_world.regions[c.b]
+        # the post has to sit ON the line the two cells share, not merely
+        # somewhere between them
+        if dist_to_polygon_edge(c.position, a.polygon) <= 5.0 \
+                and dist_to_polygon_edge(c.position, b.polygon) <= 5.0:
+            on_edge += 1
+    ok(on_edge == len(crossings),
+       "every crossing sits on the edge the two regions share (%d/%d)"
+       % (on_edge, len(crossings)))
+
+    def nearest_region(world, point):
+        best, bestd = None, None
+        for rid, rg in world.regions.items():
+            d = simA.dist(point, rg.centroid)
+            if bestd is None or d < bestd:
+                best, bestd = rid, d
+        return best
+
+    on_boundary = sum(1 for c in crossings
+                      if nearest_region(border_world, c.position) in (c.a, c.b))
+    ok(on_boundary == len(crossings),
+       "a crossing never lands in a third region (%d/%d)" % (on_boundary, len(crossings)))
+
+    # ... and the border follows the flag: capture a region, the map changes
+    before_ids = set(c.id for c in crossings)
+    hand_over = crossings[0].b
+    border_world.regions[hand_over].owner = border_world.regions[crossings[0].a].owner
+    after_ids = set(c.id for c in compute_borders(border_world))
+    ok(after_ids != before_ids,
+       "capturing a region redraws the border (%d -> %d crossings)"
+       % (len(before_ids), len(after_ids)))
+
+    # ---- elections: record decides the outcome ------------------------------
+    def poll_of(sim, nid):
+        return dict(sim.poll(sim.nation(nid))["lines"])
+
+    popular = build_demo(7)
+    pr = popular.nation("rsa")
+    pr.approval, pr.morale, pr.unemployment, pr.inflation = 78.0, 0.80, 0.04, 0.02
+    popular_poll = poll_of(popular, "rsa")
+    ok(popular_poll[pr.office.ruling_party_id] == max(popular_poll.values()),
+       "a popular incumbent leads the polls (%.3f)" % popular_poll[pr.office.ruling_party_id])
+
+    unpopular = build_demo(7)
+    ur = unpopular.nation("rsa")
+    # Deliberately bad-but-not-catastrophic: at approval 12 every party hits the
+    # 0.01 floor and the shares all collapse to the same number, which would make
+    # this assertion pass for the wrong reason.
+    ur.approval, ur.morale, ur.unemployment, ur.inflation = 30.0, 0.38, 0.14, 0.10
+    bad_poll = poll_of(unpopular, "rsa")
+    ok(bad_poll[ur.office.ruling_party_id] == min(bad_poll.values()),
+       "an unpopular incumbent trails (%.4f vs best %.4f)"
+       % (bad_poll[ur.office.ruling_party_id], max(bad_poll.values())))
+    ok(bad_poll[ur.office.ruling_party_id] < popular_poll[pr.office.ruling_party_id],
+       "the same party polls worse when the country is doing badly (%.3f -> %.3f)"
+       % (popular_poll[pr.office.ruling_party_id], bad_poll[ur.office.ruling_party_id]))
+
+    # campaign money buys votes
+    funded = build_demo(7)
+    fr = funded.nation("rsa")
+    fr.approval, fr.morale, fr.unemployment, fr.inflation = 50.0, 0.55, 0.06, 0.03
+    before_funds = poll_of(funded, "rsa")[fr.office.ruling_party_id]
+    fr.office.campaign_funds = 6_000_000.0
+    after_funds = poll_of(funded, "rsa")[fr.office.ruling_party_id]
+    ok(after_funds > before_funds,
+       "campaign funds buy votes (%.3f -> %.3f)" % (before_funds, after_funds))
+    ok(funded.fund_campaign(fr, 1_000_000.0), "the treasury can fund a campaign")
+    ok(not funded.fund_campaign(fr, 10 ** 15), "a campaign cannot be funded with money we lack")
+
+    # term limit
+    limited = build_demo(7)
+    lr = limited.nation("rsa")
+    lr.office.terms_served = 0
+    share_term1 = poll_of(limited, "rsa")[lr.office.ruling_party_id]
+    lr.office.terms_served = limited.rules["max_terms"]
+    share_limited = poll_of(limited, "rsa")[lr.office.ruling_party_id]
+    ok(share_limited < share_term1,
+       "a term-limited incumbent's party loses its incumbency bonus (%.3f -> %.3f)"
+       % (share_term1, share_limited))
+    ok(not limited.can_player_run(lr), "a term-limited president cannot stand again")
+
+    # losing really hands power over, and policy really follows
+    loser = build_demo(11)
+    nr = loser.nation("rsa")
+    nr.approval, nr.morale, nr.unemployment, nr.inflation = 8.0, 0.15, 0.30, 0.25
+    ruling_before = nr.office.ruling_party_id
+    tax_before = nr.tax_rate
+    result = loser.run_election(nr)
+    loser.apply_result(nr, result)
+    ok(result["winner"] != ruling_before,
+       "a failing government is voted out (%s -> %s)" % (ruling_before, result["winner"]))
+    ok(nr.office.ruling_party_id == result["winner"], "the winner takes office")
+    ok(not nr.office.player_is_president, "the player loses the post on defeat")
+    winner_party = nr.party_by_id(result["winner"])
+    expected_tax = clamp(0.24 + winner_party.tax_bias, 0.05, 0.60)
+    ok(abs(nr.tax_rate - tax_before) > 1e-6
+       and abs(nr.tax_rate - expected_tax) < abs(tax_before - expected_tax),
+       "the winner's tax plan actually moves the rate (%.3f -> %.3f, target %.3f)"
+       % (tax_before, nr.tax_rate, expected_tax))
+    ok(loser.rules["min_turnout"] <= result["turnout"] <= loser.rules["max_turnout"],
+       "turnout stays within the configured band (%.2f)" % result["turnout"])
+
+    # the long run holds elections at all
+    ok(len(simA.last_results) > 0,
+       "elections were held during the %d-day run (%d)"
+       % (simA.day, len(simA.last_results)))
+    ok(all(0.0 <= r["turnout"] <= 1.0 for r in simA.last_results.values()),
+       "every recorded turnout is a sane fraction")
+    ok(all(abs(sum(s for _, s in res["lines"]) - 1.0) < 1e-6
+           for res in simA.last_results.values()),
+       "vote shares always add up to 100%")
 
     print("\n%s (%d failures)" % ("SIMULATION MODEL PASSED" if not fails else "FAILED", len(fails)))
     return 1 if fails else 0

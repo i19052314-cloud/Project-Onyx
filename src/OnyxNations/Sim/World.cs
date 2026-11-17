@@ -235,6 +235,12 @@ namespace OnyxNations.Sim
             return problems;
         }
 
+        /// <summary>
+        /// The border is owned here so a save and a load see the same object the
+        /// simulation does: a change of ownership must redraw it at once.
+        /// </summary>
+        public BorderSystem Borders { get; set; }
+
         // ------------------------------------------------------------ save --
         public WorldSaveData ToSaveData()
         {
@@ -280,7 +286,14 @@ namespace OnyxNations.Sim
                     Casualties = n.Casualties,
                     PlayerIsPresident = n.Office.PlayerIsPresident,
                     DaysInTerm = n.Office.DaysInTerm,
-                    TermsServed = n.Office.TermsServed
+                    TermsServed = n.Office.TermsServed,
+                    RulingParty = n.Office.RulingPartyId,
+                    IncumbentName = n.Office.IncumbentName,
+                    CampaignDays = n.Office.CampaignDays,
+                    CampaignFunds = n.Office.CampaignFunds,
+                    ChallengerFunds = n.Office.ChallengerFunds,
+                    LastTurnout = n.Office.LastTurnout,
+                    LastWinner = n.Office.LastWinnerPartyId
                 };
                 foreach (string enemy in n.AtWar) nd.AtWar.Add(enemy);
                 foreach (Relation rel in n.Relations.Values)
@@ -322,6 +335,23 @@ namespace OnyxNations.Sim
                     });
                 }
                 data.Nations.Add(nd);
+            }
+
+            // ---- border crossings ------------------------------------------
+            // Only the mutable part is stored; the geometry is recomputed from
+            // the region graph, so a patched Regions.xml cannot leave a stale post.
+            if (Borders != null)
+            {
+                for (int i = 0; i < Borders.Crossings.Count; i++)
+                {
+                    BorderCrossing c = Borders.Crossings[i];
+                    data.Crossings.Add(new CrossingSaveData
+                    {
+                        Id = c.Id,
+                        Manning = c.Manning,
+                        Damage = c.Damage
+                    });
+                }
             }
 
             return data;
@@ -450,6 +480,28 @@ namespace OnyxNations.Sim
                 }
             }
 
+            // ---- parties ---------------------------------------------------
+            if (data.Nations != null)
+            {
+                for (int i = 0; i < data.Nations.Count; i++)
+                {
+                    NationSaveData nd = data.Nations[i];
+                    if (nd == null) continue;
+                    Nation n = NationById(nd.Id);
+                    if (n == null) continue;
+                    if (nd.RulingParty != null && n.PartyById(nd.RulingParty) != null)
+                    {
+                        n.Office.RulingPartyId = nd.RulingParty;
+                    }
+                    if (nd.IncumbentName != null) n.Office.IncumbentName = nd.IncumbentName;
+                    n.Office.CampaignDays = nd.CampaignDays;
+                    n.Office.CampaignFunds = nd.CampaignFunds;
+                    n.Office.ChallengerFunds = nd.ChallengerFunds;
+                    n.Office.LastTurnout = nd.LastTurnout;
+                    if (nd.LastWinner != null) n.Office.LastWinnerPartyId = nd.LastWinner;
+                }
+            }
+
             // ---- units -----------------------------------------------------
             for (int i = 0; i < _nations.Count; i++) _nations[i].Units.Clear();
 
@@ -485,6 +537,28 @@ namespace OnyxNations.Sim
                         TargetRegionId = ud.TargetRegion,
                         Mobilized = ud.Mobilized
                     });
+                }
+            }
+
+            // ---- border crossings ------------------------------------------
+            if (Borders != null)
+            {
+                Borders.Recompute();
+                if (data.Crossings != null)
+                {
+                    for (int i = 0; i < data.Crossings.Count; i++)
+                    {
+                        CrossingSaveData cs = data.Crossings[i];
+                        if (cs == null || string.IsNullOrEmpty(cs.Id)) continue;
+                        for (int k = 0; k < Borders.Crossings.Count; k++)
+                        {
+                            BorderCrossing c = Borders.Crossings[k];
+                            if (!string.Equals(c.Id, cs.Id, StringComparison.Ordinal)) continue;
+                            c.Manning = cs.Manning;
+                            c.Damage = cs.Damage;
+                            break;
+                        }
+                    }
                 }
             }
 

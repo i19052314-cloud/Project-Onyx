@@ -39,6 +39,7 @@ namespace OnyxNations
         private RegionTracker _tracker;
         private Overlay _overlay;
         private ArmySpawner _army;
+        private BorderSpawner _borders;
         private IOnyxBridge _bridge;
         private bool _ready;
         private long _lastClockMs;
@@ -99,7 +100,10 @@ namespace OnyxNations
                 Path.Combine(Paths.DataDir, "Nations.xml"),
                 Path.Combine(Paths.DataDir, "Regions.xml"),
                 Path.Combine(Paths.DataDir, "UnitTypes.xml"),
-                Path.Combine(Paths.DataDir, "Armies.xml")
+                Path.Combine(Paths.DataDir, "Armies.xml"),
+                Path.Combine(Paths.DataDir, "Borders.xml"),
+                Path.Combine(Paths.DataDir, "Parties.xml"),
+                Path.Combine(Paths.DataDir, "People.xml")
             };
             bool missing = false;
             for (int i = 0; i < required.Length; i++)
@@ -120,9 +124,14 @@ namespace OnyxNations
             RegionsDocument regionsDoc = Config.LoadRegions(required[1]);
             UnitTypesDocument unitTypesDoc = Config.LoadUnitTypes(required[2]);
             ArmiesDocument armiesDoc = Config.LoadArmies(required[3]);
+            BordersDocument bordersDoc = Config.LoadBorders(required[4]);
+            PartiesDocument partiesDoc = Config.LoadParties(required[5]);
+            PeopleDocument peopleDoc = Config.LoadPeople(required[6]);
 
             _world = Config.BuildWorld(nationsDoc, regionsDoc, WorldSeed);
             _unitTypes = Config.BuildArmies(_world, armiesDoc, unitTypesDoc);
+            Config.BuildParties(_world, partiesDoc);
+            _world.Borders = new BorderSystem(_world, bordersDoc);
 
             List<string> problems = _world.Validate();
             for (int i = 0; i < problems.Count; i++) Log.Error("config: {0}", problems[i]);
@@ -133,6 +142,10 @@ namespace OnyxNations
             }
 
             _sim = new Simulation(_world, WorldSeed) { PlayerNationId = _settings.PlayerNationId };
+            _sim.Borders = _world.Borders;
+            if (partiesDoc != null && partiesDoc.Rules != null) _sim.Rules = partiesDoc.Rules;
+            _sim.LoadCandidates(peopleDoc);
+            _sim.SyncCandidatesWithOffice(_world);
 
             if (SaveSystem.Exists(Paths.SaveFile))
             {
@@ -163,11 +176,17 @@ namespace OnyxNations
                 _settings.MaxSpawnedSoldiers, _settings.MaxSpawnedVehicles);
             _army.EnsureRelationshipGroups();
 
+            _borders = new BorderSpawner(_world, _sim, _world.Borders, _settings.Russian,
+                _settings.MaxBorderPosts, _settings.MaxBorderGuards);
+            _borders.EnsureRelationshipGroups(_army);
+            _borders.Challenged += OnBorderChallenge;
+
             _scheduler = new Scheduler(_settings.SlowJobMs);
             _scheduler.Add("input", 0, PollInput);
             _scheduler.Add("region-tracking", 250, TrackRegion);
             _scheduler.Add("strategic", 500, TickStrategic);
             _scheduler.Add("army", 500, TickArmy);
+            _scheduler.Add("borders", 700, TickBorders);
             _scheduler.Add("clock", 1000, TickClock);
             if (_settings.AutosaveSeconds > 0)
             {
@@ -217,6 +236,7 @@ namespace OnyxNations
             try
             {
                 _army.DespawnAll();
+                if (_borders != null) _borders.DespawnAll();
                 SaveNow();
                 Log.Info("=== aborted - world saved ===");
             }
@@ -280,6 +300,19 @@ namespace OnyxNations
             _army.RefreshRelationships();
         }
 
+        private void TickBorders()
+        {
+            Ped player = Game.Player.Character;
+            if (player == null || !player.Exists()) return;
+            _borders.Update(player.Position);
+            _borders.RefreshRelationships(_army);
+        }
+
+        private void OnBorderChallenge(object sender, string message)
+        {
+            _overlay.ShowToast(message, 2600);
+        }
+
         private void TickClock()
         {
             long now = Game.GameTime;
@@ -289,8 +322,8 @@ namespace OnyxNations
             {
                 _world.ElapsedGameMinutes += seconds * 0.5;
             }
-            Nation player = _world.NationById(_settings.PlayerNationId);
-            if (player != null) player.Office.DaysInTerm = _sim.Day % player.Office.TermDays;
+            // The electoral calendar is driven by StepElection, not by the wall
+            // clock: two owners of the same counter is how elections stop firing.
         }
 
         // ---------------------------------------------------------------- input
@@ -406,6 +439,14 @@ namespace OnyxNations
                 nation.DisplayShort(_settings.Russian) +
                 (r.IsOccupied ? (_settings.Russian ? " (оккупирован)" : " (occupied)") : ""), 2600);
             Log.Info("region '{0}' changed hands: {1} -> {2}", r.Id, previous, nationId);
+
+            // The border follows the flag: recompute where the crossings are and
+            // rebuild whatever is currently materialised.
+            if (_world.Borders != null)
+            {
+                _world.Borders.Recompute();
+                if (_borders != null) _borders.Refresh();
+            }
             SaveNow();
         }
 

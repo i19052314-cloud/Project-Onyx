@@ -99,7 +99,7 @@ def set_owner(region, nation_id):
     return previous
 
 
-def to_save(regions, seed=1337, elapsed=0.0, nations=None, units=None):
+def to_save(regions, seed=1337, elapsed=0.0, nations=None, units=None, crossings=None):
     """Mirror of World.ToSaveData -> world.json.
 
     `nations` is a list of mutable-state dicts (treasury, sliders, morale, ...)
@@ -124,6 +124,7 @@ def to_save(regions, seed=1337, elapsed=0.0, nations=None, units=None):
                      "Military": r.military, "Destruction": r.destruction} for r in regions],
         "Nations": out_nations,
         "Units": list(units or []),
+        "Crossings": list(crossings or []),
     }
 
 
@@ -188,7 +189,23 @@ def apply_save(regions_by_id, data):
                 "Casualties": ns["Casualties"], "AtWar": list(ns["AtWar"]),
                 "Relations": {x["With"]: x["Value"] for x in ns["Relations"]},
                 "Ministers": [dict(m) for m in ns["Ministers"]],
+                "DaysInTerm": ns.get("DaysInTerm", 0),
+                "TermsServed": ns.get("TermsServed", 0),
+                "RulingParty": ns.get("RulingParty", ""),
+                "IncumbentName": ns.get("IncumbentName", ""),
+                "CampaignDays": ns.get("CampaignDays", 0),
+                "CampaignFunds": ns.get("CampaignFunds", 0.0),
+                "ChallengerFunds": ns.get("ChallengerFunds", 0.0),
+                "LastTurnout": ns.get("LastTurnout", 0.0),
+                "LastWinner": ns.get("LastWinner", ""),
             })
+
+    if "Crossings" in data:
+        for cs in data["Crossings"]:
+            if cs["Id"] not in CROSSING_STATE:
+                skipped.append("border crossing '%s' no longer exists" % cs["Id"])
+                continue
+            CROSSING_STATE[cs["Id"]] = (cs["Manning"], cs["Damage"])
     if "Units" in data:
         restored = []
         for us in data["Units"]:
@@ -204,6 +221,9 @@ def apply_save(regions_by_id, data):
 # mutable state restored by a save; keyed by nation id
 NATION_STATE = {}
 KNOWN_UNIT_TYPES = set()
+
+# mutable state of border crossings: id -> (manning, damage)
+CROSSING_STATE = {}
 
 
 # ------------------------------------------------------------------ tests ----
@@ -347,6 +367,149 @@ def main():
                   "minister '%s' loyalty is within 0..1" % m.get("Name"))
     check(len(cabinets) == len(nations),
           "every nation has a cabinet (%d/%d)" % (len(cabinets), len(nations)))
+
+    print("=== XML WELL-FORMEDNESS ===")
+    # A comment containing "--" is not well-formed XML. It has bitten these files
+    # twice already (underline headers), so every file is parsed up front: a
+    # config that cannot be read is a config the game cannot load at all.
+    for name in sorted(os.listdir(DATA)):
+        if not name.endswith(".xml"):
+            continue
+        path = os.path.join(DATA, name)
+        try:
+            ET.parse(path)
+            check(True, "%s parses" % name)
+        except Exception as exc:
+            check(False, "%s parses (%s)" % (name, exc))
+
+    print("=== BORDERS ===")
+    borders_root = ET.parse(os.path.join(DATA, "Borders.xml")).getroot()
+    settings = borders_root.find("BorderSettings")
+    check(settings is not None, "Borders.xml declares BorderSettings")
+    radius = float(settings.get("CheckpointRadiusMetres"))
+    guards = int(settings.get("GuardsPerPost"))
+    open_above = int(settings.get("OpenAbove"))
+    inspect_above = int(settings.get("InspectAbove"))
+    manning = float(settings.get("ManningPerDay"))
+    decay = float(settings.get("DecayPerDayWithoutGarrison"))
+    check(0 < radius <= 500, "checkpoint radius is a plausible distance (%s)" % radius)
+    check(guards > 0, "a post is manned by at least one guard (%d)" % guards)
+    check(open_above > inspect_above,
+          "the 'open' band sits above the 'inspect' band (%d > %d)" % (open_above, inspect_above))
+    check(open_above >= -100 and inspect_above >= -100,
+          "both reaction bands are inside the -100..100 relations range")
+    check(0 < manning <= 1.0, "manning per day is a fraction (%s)" % manning)
+    check(0 < decay <= 1.0, "decay per day is a fraction (%s)" % decay)
+
+    models = borders_root.find("Models")
+    prop_models = [p.get("Model") for p in models.findall("Prop")]
+    ped_models = [p.get("Model") for p in models.findall("Ped")]
+    check(bool(prop_models), "at least one barrier prop is configured")
+    check(bool(ped_models), "at least one guard model is configured")
+    for m in prop_models + ped_models:
+        check(bool(m) and " " not in m, "model name '%s' is a single token" % m)
+    guard_roles = set(p.get("Role") for p in models.findall("Ped"))
+    check("guard" in guard_roles, "a peacetime guard model is configured")
+    check("guardWar" in guard_roles, "a wartime guard model is configured")
+
+    # an override must name two regions that really are neighbours, or the post
+    # hangs in the air
+    for ov in borders_root.find("Overrides").findall("Crossing"):
+        ra, rb = ov.get("RegionA"), ov.get("RegionB")
+        check(ra in regions and rb in regions,
+              "override '%s'/'%s' names two known regions" % (ra, rb))
+        if ra in regions and rb in regions:
+            check(rb in regions[ra].neighbours,
+                  "override '%s'/'%s' really is a border pair" % (ra, rb))
+
+    # derived crossings: adjacency + differing owners is all the module needs
+    derived = []
+    for rid, r in regions.items():
+        for nb in r.neighbours:
+            if nb in regions and rid < nb and regions[nb].owner != r.owner:
+                derived.append((rid, nb))
+    check(len(derived) > 0, "the map has borders to guard (%d crossings)" % len(derived))
+    for ra, rb in derived:
+        check(regions[ra].owner != regions[rb].owner,
+              "derived crossing %s/%s really separates two states" % (ra, rb))
+
+    print("=== PARTIES ===")
+    parties_root = ET.parse(os.path.join(DATA, "Parties.xml")).getroot()
+    rules = parties_root.find("ElectionRules")
+    check(rules is not None, "Parties.xml declares ElectionRules")
+    term_days = int(rules.get("TermDays"))
+    max_terms = int(rules.get("MaxTerms"))
+    campaign_days = int(rules.get("CampaignDays"))
+    min_turnout = float(rules.get("MinTurnout"))
+    max_turnout = float(rules.get("MaxTurnout"))
+    check(term_days > 0, "a term is a positive number of days (%d)" % term_days)
+    check(max_terms >= 1, "there is a term limit (%d)" % max_terms)
+    check(0 <= campaign_days <= term_days,
+          "the campaign fits inside the term (%d <= %d)" % (campaign_days, term_days))
+    check(0.0 <= min_turnout <= max_turnout <= 1.0,
+          "turnout band is a sane fraction (%.2f..%.2f)" % (min_turnout, max_turnout))
+
+    party_ids = set()
+    player_parties = {}
+    for p in parties_root.find("Parties").findall("Party"):
+        pid = p.get("ID")
+        nid = p.get("Nation")
+        check(pid not in party_ids, "party id '%s' is unique" % pid)
+        party_ids.add(pid)
+        check(nid in nations, "party '%s' belongs to a known nation" % pid)
+        check(-0.20 <= float(p.get("TaxBias")) <= 0.20,
+              "party '%s' tax bias is within -0.20..+0.20" % pid)
+        check(0.0 <= float(p.get("Hawkishness")) <= 1.0,
+              "party '%s' hawkishness is within 0..1" % pid)
+        check(0.0 <= float(p.get("Popularity")) <= 1.0,
+              "party '%s' popularity is within 0..1" % pid)
+        check(bool(p.get("NameRu")), "party '%s' carries a Russian name" % pid)
+        if p.get("IsPlayerParty") == "true":
+            player_parties[nid] = player_parties.get(nid, 0) + 1
+
+    for nid in nations:
+        owned = [p for p in parties_root.find("Parties").findall("Party")
+                 if p.get("Nation") == nid]
+        check(len(owned) >= 2, "nation '%s' has a real choice of parties (%d)" % (nid, len(owned)))
+        check(player_parties.get(nid, 0) <= 1,
+              "nation '%s' has at most one player party (%d)" % (nid, player_parties.get(nid, 0)))
+    # The player leads exactly one nation; the others are AI-run.
+    check(sum(player_parties.values()) == 1,
+          "exactly one party in the world is the player's (%d)" % sum(player_parties.values()))
+
+    print("=== PEOPLE (%s) ===" % len(
+        ET.parse(os.path.join(DATA, "People.xml")).getroot().find("Candidates").findall("Candidate")))
+    people_root = ET.parse(os.path.join(DATA, "People.xml")).getroot()
+    seen = set()
+    for c in people_root.find("Candidates").findall("Candidate"):
+        nid, role = c.get("Nation"), c.get("Role")
+        key = (nid, role, c.get("Name"))
+        check(key not in seen, "candidate '%s' is listed once" % c.get("Name"))
+        seen.add(key)
+        check(nid in nations, "candidate '%s' belongs to a known nation" % c.get("Name"))
+        check(role in ROLES or role == "General",
+              "candidate '%s' fills a role the module knows (%s)" % (c.get("Name"), role))
+        check(0.0 <= float(c.get("Competence")) <= 1.0,
+              "candidate '%s' competence is within 0..1" % c.get("Name"))
+        check(0.0 <= float(c.get("Loyalty")) <= 1.0,
+              "candidate '%s' loyalty is within 0..1" % c.get("Name"))
+        check(float(c.get("Salary")) > 0, "candidate '%s' is paid" % c.get("Name"))
+        check(bool(c.get("NameRu")), "candidate '%s' carries a Russian name" % c.get("Name"))
+
+    for nid in nations:
+        own = [c for c in people_root.find("Candidates").findall("Candidate")
+               if c.get("Nation") == nid]
+        roles = set(c.get("Role") for c in own)
+        for role in ROLES:
+            check(role in roles, "nation '%s' can fill %s" % (nid, role))
+        check(sum(1 for c in own if c.get("Role") == "General") >= 2,
+              "nation '%s' has a choice of generals" % nid)
+        # a real choice means the candidates are not clones
+        for role in ROLES:
+            pool = [float(c.get("Competence")) for c in own if c.get("Role") == role]
+            if len(pool) >= 2:
+                check(max(pool) - min(pool) > 0.02,
+                      "nation '%s' %s candidates differ in competence" % (nid, role))
 
     print("=== SAVE / LOAD ROUND TRIP ===")
     target = "west_ls" if "west_ls" in regions else sorted(regions)[0]
@@ -515,6 +678,82 @@ def main():
     skipped4 = apply_save(fresh, stale_full)
     check(len(skipped4) == 1 and "laser_dragons" in skipped4[0],
           "an unknown unit type is reported, not fatal")
+
+    print("=== PRESIDENCY & BORDER ROUND TRIP ===")
+    # Seed the political state and the border posts, then restart the game.
+    CROSSING_STATE.clear()
+    for ra, rb in derived:
+        CROSSING_STATE["%s|%s" % (ra, rb)] = (0.5, 0.0)
+    check(len(CROSSING_STATE) == len(derived),
+          "every derived crossing has state to save (%d)" % len(CROSSING_STATE))
+
+    NATION_STATE["rsa"].update({
+        "DaysInTerm": 331, "TermsServed": 1, "RulingParty": "rsa_civic",
+        "IncumbentName": "Хелен Марш", "CampaignDays": 29,
+        "CampaignFunds": 1_740_000.0, "ChallengerFunds": 1_305_000.0,
+        "LastTurnout": 0.0, "LastWinner": "",
+    })
+
+    # ... an election happens, and a crossing gets shelled ...
+    NATION_STATE["rsa"]["DaysInTerm"] = 12
+    NATION_STATE["rsa"]["TermsServed"] = 2
+    NATION_STATE["rsa"]["RulingParty"] = "rsa_labour"
+    NATION_STATE["rsa"]["IncumbentName"] = "Прия Раман"
+    NATION_STATE["rsa"]["CampaignDays"] = 0
+    NATION_STATE["rsa"]["CampaignFunds"] = 0.0
+    NATION_STATE["rsa"]["ChallengerFunds"] = 0.0
+    NATION_STATE["rsa"]["LastTurnout"] = 0.71
+    NATION_STATE["rsa"]["LastWinner"] = "rsa_labour"
+    NATION_STATE["rsa"]["TaxRate"] = 0.32          # the winner's plan took effect
+
+    shelled = sorted(CROSSING_STATE)[0]
+    CROSSING_STATE[shelled] = (0.15, 0.80)
+
+    state_save = to_save(
+        regions.values(), seed=1337, elapsed=1500.0,
+        nations=[dict(v, Id=k) for k, v in NATION_STATE.items()],
+        units=[],
+        crossings=[{"Id": k, "Manning": v[0], "Damage": v[1]}
+                   for k, v in sorted(CROSSING_STATE.items())])
+    raw_state = json.dumps(state_save, indent=2)
+    check(len(raw_state) > 500, "the political state serializes (%d bytes)" % len(raw_state))
+
+    # wipe: this is the game restarting
+    for nid in NATION_STATE:
+        NATION_STATE[nid].update({
+            "DaysInTerm": 0, "TermsServed": 0, "RulingParty": "",
+            "IncumbentName": "", "CampaignDays": 0, "CampaignFunds": 0.0,
+            "ChallengerFunds": 0.0, "LastTurnout": 0.0, "LastWinner": "",
+        })
+    for k in list(CROSSING_STATE):
+        CROSSING_STATE[k] = (0.5, 0.0)
+
+    skipped5 = apply_save(fresh, json.loads(raw_state))
+    check(not skipped5, "no entries were skipped reloading the political state")
+
+    rsa2 = NATION_STATE["rsa"]
+    check(rsa2["DaysInTerm"] == 12, "the new term's day count survived")
+    check(rsa2["TermsServed"] == 2, "the number of terms served survived")
+    check(rsa2["RulingParty"] == "rsa_labour", "the election winner is still in office")
+    check(rsa2["IncumbentName"] == "Прия Раман", "the head of state survived")
+    check(abs(rsa2["LastTurnout"] - 0.71) < 1e-6, "the recorded turnout survived")
+    check(rsa2["LastWinner"] == "rsa_labour", "the recorded winner survived")
+    check(abs(rsa2["TaxRate"] - 0.32) < 1e-6, "the winner's tax rate survived")
+    check(rsa2["CampaignFunds"] == 0.0, "a spent campaign fund stays spent")
+
+    check(CROSSING_STATE[shelled] == (0.15, 0.80),
+          "the shelled crossing is still damaged (%s)" % (CROSSING_STATE[shelled],))
+    intact = [k for k in CROSSING_STATE if k != shelled]
+    check(all(CROSSING_STATE[k] == (0.5, 0.0) for k in intact),
+          "undamaged crossings came back at full manning (%d)" % len(intact))
+
+    # a crossing that no longer exists (the pair are now one country) is
+    # reported, not fatal
+    stale_state = json.loads(raw_state)
+    stale_state["Crossings"].append({"Id": "atlantis|lemuria", "Manning": 1.0, "Damage": 0.0})
+    skipped6 = apply_save(fresh, stale_state)
+    check(len(skipped6) == 1 and "atlantis" in skipped6[0],
+          "a vanished crossing is reported, not fatal")
 
     # a save written by a newer build must be refused
     newer = to_save(regions.values())

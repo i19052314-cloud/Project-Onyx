@@ -120,17 +120,73 @@ namespace OnyxNations.Sim
         {
             get { return DaysInTerm >= TermDays; }
         }
+
+        /// <summary>Party currently holding the presidency ("" = non-partisan).</summary>
+        public string RulingPartyId = "";
+
+        /// <summary>True once the incumbent has served the maximum and cannot run again.</summary>
+        public bool TermLimited(int maxTerms)
+        {
+            return TermsServed >= maxTerms;
+        }
+
+        /// <summary>Game days of campaigning already done for the coming election.</summary>
+        public int CampaignDays;
+
+        /// <summary>Funds the challengers have raised for the coming election.</summary>
+        public double ChallengerFunds;
+
+        /// <summary>Last result, for the news screen.</summary>
+        public float LastTurnout;
+        public string LastWinnerPartyId = "";
     }
 
-    /// <summary>Authored political party (Cabinet.xml).</summary>
+    /// <summary>One party's share of the vote in a computed election.</summary>
+    public sealed class BallotLine
+    {
+        public string PartyId;
+        public float Share;      // 0..1 of the vote
+        public string PartyName(bool russian, List<Party> parties)
+        {
+            for (int i = 0; i < parties.Count; i++)
+            {
+                if (string.Equals(parties[i].Id, PartyId, StringComparison.Ordinal))
+                {
+                    return russian ? (parties[i].NameRu ?? parties[i].Name)
+                                   : parties[i].Name;
+                }
+            }
+            return PartyId;
+        }
+    }
+
+    /// <summary>Outcome of an election.</summary>
+    public sealed class ElectionResult
+    {
+        public string WinnerPartyId = "";
+        public float Turnout;
+        public List<BallotLine> Lines = new List<BallotLine>();
+        public bool IncumbentWon;
+        public int Day;
+    }
+
+    /// <summary>Authored political party (Parties.xml).</summary>
     public sealed class Party
     {
         public string Id;
+        public string NationId;
         public string Name;
         public string NameRu;
         public float TaxBias;        // -0.2 .. +0.2 preferred shift from the status quo
         public float Hawkishness;    // 0..1
         public float Popularity;     // 0..1 baseline
         public bool IsPlayerParty;
+        public int R = 200, G = 200, B = 200;
+
+        public string DisplayName(bool russian)
+        {
+            if (russian) return string.IsNullOrEmpty(NameRu) ? Name : NameRu;
+            return string.IsNullOrEmpty(Name) ? NameRu : Name;
+        }
     }
 }
