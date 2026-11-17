@@ -35,6 +35,14 @@ BCL_TYPES = {
     "FileInfo", "DirectoryInfo", "StreamWriter", "StreamReader", "FileStream",
     "MemoryStream", "Stopwatch", "StringBuilder", "XmlSerializer",
     "DataContractJsonSerializer", "File", "Directory", "Path", "Task", "Thread",
+    "Random", "EventArgs", "Exception", "OutputArgument",
+}
+
+# ScriptHookVDotNet types. They live in the reference assembly, which is not
+# available here, so they are whitelisted by name the same way BCL types are.
+GTA_TYPES = {
+    "Vector3", "Vector2", "Model", "Ped", "Vehicle", "PedGroup", "Blip",
+    "Prop", "WeaponHash", "Relationship", "InputArgument", "Camera",
 }
 KNOWN_NAMESPACES = {"GTA", "GTA.Native", "GTA.Math", "GTA.UI"}
 
@@ -114,6 +122,12 @@ MEMBER_RE = re.compile(
     r'(?:(?:static|readonly|const|sealed|virtual|override|extern|new)\s+)*'
     r'[\w<>\[\],\.\?\*\s]+?\s+(\w+)\s*(?:\(|;|\{|=|$)', re.M)
 
+# `enum Foo { A, B = 3, C }` - enum members are plain identifiers and are never
+# matched by MEMBER_RE, so they are collected separately.
+ENUM_RE = re.compile(
+    r'\benum\s+(\w+)[^{;]*\{([^}]*)\}', re.S)
+ENUM_MEMBER_RE = re.compile(r'^\s*(\w+)\s*(?:=[^,]*)?,?\s*(?://.*)?$')
+
 
 def main():
     problems = []
@@ -164,6 +178,14 @@ def main():
         for tname in TYPE_RE.findall(raw):
             types.setdefault(tname, set())
 
+        # enum members: `A,` / `B = 3,` inside an enum body
+        for tname, body in ENUM_RE.findall(raw):
+            members = types.setdefault(tname, set())
+            for chunk in body.replace("\r", "").split(","):
+                m = ENUM_MEMBER_RE.match(chunk)
+                if m:
+                    members.add(m.group(1))
+
         for m in MEMBER_RE.findall(raw):
             # members belong to the type declared most recently before them
             pass
@@ -187,6 +209,19 @@ def main():
     # --------------------------------------------------------- 3. using check
     for rel, raw in files.items():
         for alias, ns in USING_RE.findall(raw):
+            if alias:
+                # `using Alias = Some.Type;` (or a namespace alias such as
+                # `using WF = System.Windows.Forms;`) - the target is not a
+                # plain namespace import, so only check what we can.
+                root = ns.split(".")[0]
+                if root in KNOWN_PREFIXES or ns in KNOWN_NAMESPACES:
+                    continue
+                short = ns.split(".")[-1]
+                if short in types or short in BCL_TYPES or short in GTA_TYPES:
+                    continue
+                warnings.append("%s: alias '%s = %s' targets an unknown type"
+                                % (rel, alias, ns))
+                continue
             root = ns.split(".")[0]
             if ns in namespaces or ns in KNOWN_NAMESPACES or root in KNOWN_PREFIXES:
                 continue
@@ -198,7 +233,7 @@ def main():
         for tname in NEW_RE.findall(code) + TYPEOF_RE.findall(code):
             if tname in types or tname in KNOWN_NAMESPACES:
                 continue
-            if tname in BCL_TYPES or len(tname) == 1 or tname.endswith("Exception"):
+            if tname in BCL_TYPES or tname in GTA_TYPES or len(tname) == 1 or tname.endswith("Exception"):
                 continue
             problems.append("%s: unknown type '%s'" % (rel, tname))
 

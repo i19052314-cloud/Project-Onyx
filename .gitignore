@@ -8,6 +8,10 @@ src/**/obj/
 # Local ScriptHookVDotNet reference used only to compile
 lib/shvdn3/*.dll
 
+# Python tooling noise
+__pycache__/
+*.py[cod]
+
 # Runtime output of the module inside the game folder (never commit a world)
 OnyxNations/Saves/
 OnyxNations/*.log

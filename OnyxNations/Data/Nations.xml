@@ -36,6 +36,8 @@
             Ideology="Presidential republic"
             IdeologyRu="Президентская республика"
             Militarization="0.30"
+            StartingTreasury="45000000"
+            Aggression="0.35" Caution="0.55" Mercantilism="0.45"
             FlagR="47" FlagG="111" FlagB="208">
       <Relations>
         <Relation With="fzsa" Value="-35" State="Hostile"/>
@@ -55,6 +57,8 @@
             Ideology="Federal military republic"
             IdeologyRu="Федеративная военная республика"
             Militarization="0.62"
+            StartingTreasury="26000000"
+            Aggression="0.75" Caution="0.35" Mercantilism="0.30"
             FlagR="208" FlagG="96" FlagB="47">
       <Relations>
         <Relation With="rsa" Value="-35" State="Hostile"/>

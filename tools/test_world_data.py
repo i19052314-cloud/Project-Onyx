@@ -99,8 +99,22 @@ def set_owner(region, nation_id):
     return previous
 
 
-def to_save(regions, seed=1337, elapsed=0.0):
-    """Mirror of World.ToSaveData -> world.json."""
+def to_save(regions, seed=1337, elapsed=0.0, nations=None, units=None):
+    """Mirror of World.ToSaveData -> world.json.
+
+    `nations` is a list of mutable-state dicts (treasury, sliders, morale, ...)
+    and `units` a list of unit dicts; both are optional so the earlier,
+    region-only tests keep exercising the same path as before.
+
+    Relations are kept in memory as {nation: value} but written as a list of
+    {With, Value} pairs, exactly as the DataContract does.
+    """
+    out_nations = []
+    for ns in (nations or []):
+        ns = dict(ns)
+        rel = ns.get("Relations") or {}
+        ns["Relations"] = [{"With": k, "Value": v} for k, v in sorted(rel.items())]
+        out_nations.append(ns)
     return {
         "Version": SAVE_VERSION,
         "Seed": seed,
@@ -108,7 +122,44 @@ def to_save(regions, seed=1337, elapsed=0.0):
         "ElapsedGameMinutes": elapsed,
         "Regions": [{"Id": r.id, "Owner": r.owner, "Control": r.control,
                      "Military": r.military, "Destruction": r.destruction} for r in regions],
+        "Nations": out_nations,
+        "Units": list(units or []),
     }
+
+
+class UnitType(object):
+    def __init__(self, el):
+        self.id = el.get("ID")
+        self.name = el.get("Name")
+        self.name_ru = el.get("NameRu") or ""
+        self.category = el.get("Category")
+        self.manpower = int(el.get("Manpower"))
+        self.fire = float(el.get("Firepower"))
+        self.armor = float(el.get("Armor"))
+        self.mobility = float(el.get("Mobility"))
+        self.range = float(el.get("Range"))
+        self.cost = float(el.get("Cost"))
+        self.upkeep = float(el.get("Upkeep"))
+        self.vehicle_model = el.get("VehicleModel") or ""
+        self.vehicle_count = int(el.get("VehicleCount"))
+
+    @property
+    def raw_power(self):
+        """Mirror of Unit.Power before morale/supply/experience multipliers.
+
+        Exists so the data can be checked for what it claims to be: a unit that
+        outguns armour *and* outruns it *and* costs less is a data bug, not a
+        balance decision.
+        """
+        return (self.manpower / 100.0
+                * (0.50 * self.fire + 0.20 * self.armor
+                   + 0.15 * self.mobility + 0.15 * self.range) / 100.0)
+
+
+CATEGORIES = ["Infantry", "MotorRifle", "Armor", "Artillery", "Air", "Heli",
+              "SpecOps", "MilitaryPolice"]
+ROLES = ["Prime", "Defence", "Interior", "Finance", "Foreign", "Transport",
+         "Health"]
 
 
 def apply_save(regions_by_id, data):
@@ -124,7 +175,35 @@ def apply_save(regions_by_id, data):
         r.control = min(100.0, max(0.0, rs["Control"]))
         r.military = min(100.0, max(0.0, rs["Military"]))
         r.destruction = min(100.0, max(0.0, rs["Destruction"]))
+
+    if "Nations" in data:
+        for ns in data["Nations"]:
+            if ns["Id"] not in NATION_STATE:
+                skipped.append("nation '%s' no longer exists" % ns["Id"])
+                continue
+            NATION_STATE[ns["Id"]].update({
+                "Treasury": ns["Treasury"], "TaxRate": ns["TaxRate"],
+                "Morale": ns["Morale"], "Approval": ns["Approval"],
+                "WarWeariness": ns["WarWeariness"], "Mobilization": ns["Mobilization"],
+                "Casualties": ns["Casualties"], "AtWar": list(ns["AtWar"]),
+                "Relations": {x["With"]: x["Value"] for x in ns["Relations"]},
+                "Ministers": [dict(m) for m in ns["Ministers"]],
+            })
+    if "Units" in data:
+        restored = []
+        for us in data["Units"]:
+            if us["Nation"] not in NATION_STATE or us["Type"] not in KNOWN_UNIT_TYPES:
+                skipped.append("unit '%s' could not be restored (type '%s')"
+                               % (us["Id"], us["Type"]))
+                continue
+            restored.append(dict(us))
+        data["_restored_units"] = restored
     return skipped
+
+
+# mutable state restored by a save; keyed by nation id
+NATION_STATE = {}
+KNOWN_UNIT_TYPES = set()
 
 
 # ------------------------------------------------------------------ tests ----
@@ -186,6 +265,89 @@ def main():
             bad += 1
     check(bad == 0, "every postal point falls in exactly one region (%d bad)" % bad)
 
+    print("=== UNIT TYPES ===")
+    ut_root = ET.parse(os.path.join(DATA, "UnitTypes.xml")).getroot()
+    types = {}
+    for ut in ut_root.find("UnitTypes").findall("UnitType"):
+        types[ut.get("ID")] = UnitType(ut)
+    check(len(types) >= 8, "at least eight unit types are configured (%d)" % len(types))
+    seen_categories = set()
+    for tid, t in types.items():
+        check(t.category in CATEGORIES,
+              "unit '%s' category '%s' is one the C# enum knows" % (tid, t.category))
+        seen_categories.add(t.category)
+        check(t.manpower > 0, "unit '%s' has manpower" % tid)
+        check(t.cost > 0 and t.upkeep > 0, "unit '%s' has a cost and an upkeep" % tid)
+        check(0 <= t.fire <= 100 and 0 <= t.armor <= 100
+              and 0 <= t.mobility <= 100 and 0 <= t.range <= 100,
+              "unit '%s' combat ratings are within 0..100" % tid)
+        check(bool(t.name_ru), "unit '%s' carries a Russian display name" % tid)
+    check(len(seen_categories) == len(CATEGORIES),
+          "every unit category is represented (%d/%d)" % (len(seen_categories), len(CATEGORIES)))
+
+    # the ordering claims in the data file: armour outguns infantry and artillery
+    # outranges everything, while aviation is the fastest thing on the map
+    check(types["armor"].armor > types["infantry"].armor,
+          "armour is better protected than infantry")
+    check(types["armor"].fire > types["infantry"].fire,
+          "armour hits harder than infantry")
+    check(types["artillery"].range >= max(types[t].range for t in types),
+          "artillery has the longest reach")
+    check(types["air"].mobility >= max(types[t].mobility for t in types),
+          "aviation is the fastest arm")
+    check(types["artillery"].mobility < types["infantry"].mobility,
+          "artillery is slower than infantry")
+    # Per soldier, not per unit: an armour battalion is a small formation of very
+    # expensive specialists, so the honest comparison is power per head.
+    check(types["armor"].raw_power / types["armor"].manpower
+          > types["infantry"].raw_power / types["infantry"].manpower,
+          "armour concentrates more combat power per soldier than infantry")
+    check(types["infantry"].upkeep / types["infantry"].manpower
+          < types["armor"].upkeep / types["armor"].manpower,
+          "armour costs more per soldier to keep in the field")
+    # and the costs follow the same ordering, or nothing above means anything
+    check(types["armor"].upkeep > types["infantry"].upkeep,
+          "armour costs more to keep in the field than infantry")
+    check(types["air"].upkeep >= max(types[t].upkeep for t in types),
+          "aviation is the most expensive arm to run")
+
+    print("=== ARMIES & CABINETS (%d armies) ===" % len(
+        ET.parse(os.path.join(DATA, "Armies.xml")).getroot().find("Armies").findall("Army")))
+    armies_root = ET.parse(os.path.join(DATA, "Armies.xml")).getroot()
+    unit_total = 0
+    for army in armies_root.find("Armies").findall("Army"):
+        nid = army.get("Nation")
+        check(nid in nations, "army belongs to a known nation ('%s')" % nid)
+        for u in army.findall("Unit"):
+            check(u.get("Type") in types,
+                  "army '%s' fields a known unit type ('%s')" % (nid, u.get("Type")))
+            check(int(u.get("Count")) > 0, "army '%s' asks for at least one of '%s'"
+                  % (nid, u.get("Type")))
+            unit_total += int(u.get("Count"))
+        check(len(army.findall("General")) >= 1,
+              "army '%s' has at least one general" % nid)
+        for g in army.findall("General"):
+            check(0.0 <= float(g.get("Skill")) <= 1.0,
+                  "general '%s' skill is within 0..1" % g.get("Name"))
+    check(unit_total > 0, "the configured armies raise at least one unit (%d)" % unit_total)
+
+    cabinets = armies_root.find("Cabinets").findall("Cabinet")
+    for cab in cabinets:
+        nid = cab.get("Nation")
+        check(nid in nations, "cabinet belongs to a known nation ('%s')" % nid)
+        roles = [m.get("Role") for m in cab.findall("Minister")]
+        for role in ROLES:
+            check(role in roles, "cabinet '%s' seats a minister of %s" % (nid, role))
+        for m in cab.findall("Minister"):
+            check(m.get("Role") in ROLES,
+                  "minister '%s' holds a role the C# enum knows" % m.get("Name"))
+            check(0.0 <= float(m.get("Competence")) <= 1.0,
+                  "minister '%s' competence is within 0..1" % m.get("Name"))
+            check(0.0 <= float(m.get("Loyalty")) <= 1.0,
+                  "minister '%s' loyalty is within 0..1" % m.get("Name"))
+    check(len(cabinets) == len(nations),
+          "every nation has a cabinet (%d/%d)" % (len(cabinets), len(nations)))
+
     print("=== SAVE / LOAD ROUND TRIP ===")
     target = "west_ls" if "west_ls" in regions else sorted(regions)[0]
     other = [n for n in nations if n != regions[target].owner][0]
@@ -218,6 +380,141 @@ def main():
     set_owner(fresh[target], fresh[target].original_owner)
     check(not fresh[target].occupied, "returning a region to its original owner clears the occupation")
     check(fresh[target].control == 100.0, "a liberated region is back at 100%% control")
+
+    print("=== FULL STATE ROUND TRIP (nations, ministers, units) ===")
+    # Seed the same state the C# module builds from Armies.xml / Nations.xml.
+    types_by_id = {t.id: t for t in types.values()}
+    KNOWN_UNIT_TYPES.clear()
+    KNOWN_UNIT_TYPES.update(types_by_id.keys())
+    NATION_STATE.clear()
+    units_now = []
+    serial = 0
+    for army in armies_root.find("Armies").findall("Army"):
+        nid = army.get("Nation")
+        n_el = nations[nid]
+        cap = n_el.get("CapitalRegion")
+        cx, cy = regions[cap].centroid
+        NATION_STATE[nid] = {
+            "Treasury": float(n_el.get("StartingTreasury")),
+            "TaxRate": 0.24, "Morale": 0.60, "Approval": 55.0,
+            "WarWeariness": 0.0, "Mobilization": 0.35, "Casualties": 0,
+            "AtWar": [],
+            "Relations": {r.get("With"): int(r.get("Value"))
+                          for r in (n_el.find("Relations") or [])},
+            "Ministers": [{"Role": m.get("Role"), "Name": m.get("Name"),
+                           "Competence": float(m.get("Competence")),
+                           "Loyalty": float(m.get("Loyalty")), "Relation": 0.5,
+                           "Task": "None", "TaskDaysLeft": 0}
+                          for m in armies_root.find("Cabinets").findall("Cabinet")
+                          if m.get("Nation") == nid for m in m.findall("Minister")],
+        }
+        for u in army.findall("Unit"):
+            for k in range(int(u.get("Count"))):
+                serial += 1
+                spread = (k - int(u.get("Count")) / 2.0) * 60.0
+                units_now.append({
+                    "Id": "u%d" % serial, "Type": u.get("Type"), "Nation": nid,
+                    "Name": types_by_id[u.get("Type")].name_ru + "-" + str(k + 1),
+                    "X": cx + spread, "Y": cy + spread * 0.7,
+                    "Strength": 1.0, "Morale": 0.70, "Supply": 0.85,
+                    "Experience": 0.15, "Order": "Hold", "TargetRegion": "",
+                    "Mobilized": True,
+                })
+
+    check(len(NATION_STATE) == len(nations), "every nation has mutable state to save")
+    check(len(units_now) == unit_total,
+          "the save carries every configured unit (%d/%d)" % (len(units_now), unit_total))
+    for nid in NATION_STATE:
+        check(len(NATION_STATE[nid]["Ministers"]) == len(ROLES),
+              "nation '%s' saves all %d ministers" % (nid, len(ROLES)))
+
+    # ... the war happens ...
+    NATION_STATE["rsa"]["AtWar"] = ["fzsa"]
+    NATION_STATE["fzsa"]["AtWar"] = ["rsa"]
+    NATION_STATE["rsa"]["Treasury"] -= 4_250_000.0
+    NATION_STATE["rsa"]["Morale"] = 0.41
+    NATION_STATE["rsa"]["Approval"] = 37.5
+    NATION_STATE["rsa"]["WarWeariness"] = 0.32
+    NATION_STATE["rsa"]["Mobilization"] = 0.80
+    NATION_STATE["rsa"]["Casualties"] = 12_500
+    NATION_STATE["rsa"]["Relations"]["fzsa"] = -70
+    NATION_STATE["rsa"]["Ministers"][1]["Task"] = "SpeedMobilization"
+    NATION_STATE["rsa"]["Ministers"][1]["TaskDaysLeft"] = 3
+    units_now[0]["Strength"] = 0.42
+    units_now[0]["Morale"] = 0.33
+    units_now[0]["Supply"] = 0.21
+    units_now[0]["Experience"] = 0.58
+    units_now[0]["Order"] = "Attack"
+    units_now[0]["TargetRegion"] = target
+    units_now[0]["X"] = regions[target].centroid[0]
+    units_now[0]["Y"] = regions[target].centroid[1]
+    destroyed = units_now.pop()       # a unit wiped out during the fighting
+
+    full = to_save(regions.values(), seed=1337, elapsed=987.25,
+                   nations=[dict(v, Id=k) for k, v in NATION_STATE.items()],
+                   units=units_now)
+    raw_full = json.dumps(full, indent=2)
+    check(len(raw_full) > 2000, "the full save is real JSON (%d bytes)" % len(raw_full))
+
+    # wipe everything and reload: this is what a restart actually does
+    for nid in NATION_STATE:
+        n_el = nations[nid]
+        NATION_STATE[nid] = {
+            "Treasury": float(n_el.get("StartingTreasury")),
+            "TaxRate": 0.24, "Morale": 0.60, "Approval": 55.0,
+            "WarWeariness": 0.0, "Mobilization": 0.35, "Casualties": 0,
+            "AtWar": [],
+            "Relations": {r.get("With"): int(r.get("Value"))
+                          for r in (n_el.find("Relations") or [])},
+            "Ministers": [{"Role": m.get("Role"), "Name": m.get("Name"),
+                           "Competence": float(m.get("Competence")),
+                           "Loyalty": float(m.get("Loyalty")), "Relation": 0.5,
+                           "Task": "None", "TaskDaysLeft": 0}
+                          for m in armies_root.find("Cabinets").findall("Cabinet")
+                          if m.get("Nation") == nid for m in m.findall("Minister")],
+        }
+    reloaded_full = json.loads(raw_full)
+    skipped3 = apply_save(fresh, reloaded_full)
+    check(not skipped3, "no entries were skipped reloading the full save")
+
+    rsa = NATION_STATE["rsa"]
+    check(rsa["AtWar"] == ["fzsa"], "the war survived the restart")
+    check(abs(rsa["Treasury"] - (float(nations["rsa"].get("StartingTreasury")) - 4_250_000.0)) < 1.0,
+          "the treasury survived the restart")
+    check(abs(rsa["Morale"] - 0.41) < 1e-6, "morale survived the restart")
+    check(abs(rsa["Approval"] - 37.5) < 1e-6, "the president's approval survived")
+    check(abs(rsa["WarWeariness"] - 0.32) < 1e-6, "war weariness survived")
+    check(abs(rsa["Mobilization"] - 0.80) < 1e-6, "mobilization level survived")
+    check(rsa["Casualties"] == 12_500, "casualty count survived")
+    check(rsa["Relations"]["fzsa"] == -70, "diplomatic relations survived")
+    defence = [m for m in rsa["Ministers"] if m["Role"] == "Defence"][0]
+    check(defence["Task"] == "SpeedMobilization" and defence["TaskDaysLeft"] == 3,
+          "a ministry task in progress survived the restart")
+
+    restored = reloaded_full["_restored_units"]
+    check(len(restored) == unit_total - 1,
+          "a destroyed unit does not come back (%d of %d)" % (len(restored), unit_total))
+    check(not any(u["Id"] == destroyed["Id"] for u in restored),
+          "the destroyed unit id is gone from the order of battle")
+    moved = [u for u in restored if u["Id"] == units_now[0]["Id"]][0]
+    check(abs(moved["Strength"] - 0.42) < 1e-6, "unit strength survived")
+    check(abs(moved["Morale"] - 0.33) < 1e-6, "unit morale survived")
+    check(abs(moved["Supply"] - 0.21) < 1e-6, "unit supply survived")
+    check(abs(moved["Experience"] - 0.58) < 1e-6, "unit experience survived")
+    check(moved["Order"] == "Attack" and moved["TargetRegion"] == target,
+          "an attack order in progress survived the restart")
+    check(abs(moved["X"] - regions[target].centroid[0]) < 1e-6,
+          "the unit is still where the battle left it")
+
+    # a save naming a unit type that no longer exists is reported, not fatal
+    stale_full = json.loads(raw_full)
+    stale_full["Units"].append({"Id": "u999", "Type": "laser_dragons", "Nation": "rsa",
+                                "Name": "?", "X": 0, "Y": 0, "Strength": 1, "Morale": 1,
+                                "Supply": 1, "Experience": 0, "Order": "Hold",
+                                "TargetRegion": "", "Mobilized": True})
+    skipped4 = apply_save(fresh, stale_full)
+    check(len(skipped4) == 1 and "laser_dragons" in skipped4[0],
+          "an unknown unit type is reported, not fatal")
 
     # a save written by a newer build must be refused
     newer = to_save(regions.values())
