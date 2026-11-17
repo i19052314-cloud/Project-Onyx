@@ -18,7 +18,10 @@ where it is written:
   5. every project type a file mentions is actually *reachable* from that file's
      namespace - own namespace, an enclosing namespace, or an imported one. This
      is CS0246, the error a compiler reports in a second and a whitespace-level
-     check cannot see at all: the type exists, the `using` does not.
+     check cannot see at all: the type exists, the `using` does not;
+  6. no bare name is reachable from two imported namespaces at once (CS0104).
+     `GTA.World` and `OnyxNations.Sim.World` is the real case: a file that needs
+     both the natives and the simulation state has to alias one of them.
 
 Usage:  python3 tools/check_sources.py
 Exit code 0 = clean, 1 = problems found.
@@ -49,6 +52,25 @@ GTA_TYPES = {
     "Prop", "WeaponHash", "Relationship", "InputArgument", "Camera",
 }
 KNOWN_NAMESPACES = {"GTA", "GTA.Native", "GTA.Math", "GTA.UI"}
+
+# SHVDN type names that can collide with one of ours. Only names that actually
+# appear in both worlds matter, but the list is deliberately a little wider than
+# today's needs: the reference assembly is not available here, so a collision the
+# list misses is a collision the checker misses too.
+GTA_PUBLIC_TYPES = {
+    "World", "Vehicle", "Ped", "Prop", "Entity", "Blip", "Camera", "Model",
+    "Relationship", "RelationshipGroup", "PedGroup", "Weapon", "WeaponAsset",
+    "WeaponHash", "RadioStation", "Scaleform", "ParticleEffect", "Rope",
+    "Checkpoint", "RaycastResult", "MaterialHash", "Tasks", "TaskInvoker",
+    "Script", "ScriptSettings", "Settings", "Game", "GameVersion", "Audio",
+    "Weather", "Clock", "Hud", "HudComponent", "LoadingPrompt", "Marker",
+    "Pickup", "PickupObject", "Interior", "Door", "Building", "Projectile",
+    "Style", "Gender", "DrivingStyle", "VehicleSeat", "FiringPattern",
+    "FormationType", "ForceType", "Function", "Global", "Globals",
+    "Notification", "Screen", "Menu", "MenuItem", "Font", "TextStyle",
+    "Control", "Vector3", "Vector2", "Quaternion", "Matrix", "VehicleHash",
+    "PedHash", "BlipSprite", "BlipColor", "ExplosionType", "Bone", "Language",
+}
 
 # member names that come from the BCL / GTA and are never declared here
 EXTERNAL_MEMBERS = {
@@ -132,6 +154,33 @@ ENUM_RE = re.compile(
     r'\benum\s+(\w+)[^{;]*\{([^}]*)\}', re.S)
 ENUM_MEMBER_RE = re.compile(r'^\s*(\w+)\s*(?:=[^,]*)?,?\s*(?://.*)?$')
 
+# Where a bare type name can appear: `new`, `typeof`, a declaration
+# ("TypeName name ="), a generic argument, a static access ("TypeName.Member").
+# Used by rules 5 and 6.
+DECL_RE = re.compile(
+    r'(?<![\w.])([A-Z]\w*)(?:\s*<[^<>=;(){}]*?>)?'
+    r'(?=\s+[A-Za-z_]\w*\s*(?:=|;|,|\)|\{|\[))')
+ACCESS_RE = re.compile(r'(?<![\w.])([A-Z]\w*)\s*\.\s*[A-Z]\w*')
+GENERIC_RE = re.compile(r'<([^<>;()]*(?:<[^<>]*>)?[^<>;()]*)>')
+
+
+def type_references(code):
+    """Bare names that stand where C# would resolve a type, as a set."""
+    cands = set()
+    for rx in (NEW_RE, TYPEOF_RE, DECL_RE, ACCESS_RE):
+        for m in rx.finditer(code):
+            cands.add(m.group(1))
+    for m in GENERIC_RE.finditer(code):
+        for part in m.group(1).split(","):
+            tok = part.strip().split(" ")[0]
+            if re.match(r"^[A-Z]\w*$", tok):
+                cands.add(tok)
+    return cands
+
+
+def alias_names(raw):
+    return {alias for alias, _ in USING_RE.findall(raw) if alias}
+
 
 def main():
     problems = []
@@ -164,6 +213,7 @@ def main():
     namespaces = set()
     types = {}          # type name -> set(member names)
     type_ns = {}        # type name -> namespace it is declared in
+    type_nss = {}       # type name -> every namespace it is declared in
     file_ns = {}        # relative path -> namespace of the file
     files = {}
 
@@ -187,6 +237,7 @@ def main():
         for tname in TYPE_RE.findall(raw):
             types.setdefault(tname, set())
             type_ns.setdefault(tname, file_ns[rel])
+            type_nss.setdefault(tname, set()).add(file_ns[rel])
 
         # enum members: `A,` / `B = 3,` inside an enum body. Trailing comments
         # are stripped first — most enums here are annotated member by member.
@@ -279,28 +330,12 @@ def main():
     #
     # Only project types are checked: BCL and SHVDN types are not declared here,
     # so nothing can be said about them without the reference assembly.
-    DECL_RE = re.compile(
-        r'(?<![\w.])([A-Z]\w*)(?:\s*<[^<>=;(){}]*?>)?'
-        r'(?=\s+[A-Za-z_]\w*\s*(?:=|;|,|\)|\{|\[))')
-    ACCESS_RE = re.compile(r'(?<![\w.])([A-Z]\w*)\s*\.\s*[A-Z]\w*')
-    GENERIC_RE = re.compile(r'<([^<>;()]*(?:<[^<>]*>)?[^<>;()]*)>')
-
     for rel, raw in files.items():
         ns = file_ns.get(rel, "")
         usings = [target for alias, target in USING_RE.findall(raw) if not alias]
         code = strip_noise(raw)
 
-        cands = set()
-        for rx in (NEW_RE, TYPEOF_RE, DECL_RE, ACCESS_RE):
-            for m in rx.finditer(code):
-                cands.add(m.group(1))
-        for m in GENERIC_RE.finditer(code):
-            for part in m.group(1).split(","):
-                tok = part.strip().split(" ")[0]
-                if re.match(r"^[A-Z]\w*$", tok):
-                    cands.add(tok)
-
-        for tname in sorted(cands):
+        for tname in sorted(type_references(code)):
             if tname not in types:
                 continue
             tns = type_ns.get(tname, "")
@@ -319,6 +354,37 @@ def main():
                 if u.startswith("OnyxNations.Core") or u.startswith("OnyxNations.Presentation"):
                     warnings.append("%s: the Sim layer imports %s - the dependency "
                                     "arrow must point Sim-wards" % (rel, u))
+
+    # ------------------------------------------------------ 6. ambiguity check
+    # CS0104: one bare name, two namespaces it could come from. Enclosing
+    # namespaces are searched first and the first hit wins, so a type declared in
+    # OnyxNations itself never clashes with an imported one - only names living in
+    # a sibling namespace can. That is why Log/Settings/IniFile sit in the root
+    # namespace while World, which GTA also owns, needs an alias in the files that
+    # import both.
+    for rel, raw in files.items():
+        ns = file_ns.get(rel, "")
+        usings = [target for alias, target in USING_RE.findall(raw) if not alias]
+        aliases = alias_names(raw)
+        code = strip_noise(raw)
+
+        parts = ns.split(".") if ns else []
+        chain = [".".join(parts[:i]) for i in range(len(parts), 0, -1)] + [""]
+
+        for tname in sorted(type_references(code)):
+            if tname in aliases:
+                continue        # an alias is resolved, and resolves to exactly one type
+            if any(c in type_nss.get(tname, set()) for c in chain):
+                continue        # enclosing namespace wins before any using directive
+            hits = set()
+            for u in usings:
+                if u in type_nss.get(tname, set()):
+                    hits.add(u)
+                if u.startswith("GTA") and tname in GTA_PUBLIC_TYPES:
+                    hits.add("GTA (SHVDN)")
+            if len(hits) > 1:
+                problems.append("%s: '%s' is ambiguous between %s (CS0104)"
+                                % (rel, tname, " and ".join(sorted(hits))))
 
     # ----------------------------------------------------------------- report
     print("\n=== CHECK ===")

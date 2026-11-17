@@ -12,6 +12,10 @@ using System.Globalization;
 using GTA;
 using OnyxNations.Core;
 using OnyxNations.Sim;
+// GTA.World and OnyxNations.Sim.World collide, and this file genuinely needs
+// both sides: the natives come from GTA, the world state from the simulation.
+// Main.cs already uses this alias, so the two files read the same way.
+using SimWorld = OnyxNations.Sim.World;
 
 namespace OnyxNations.Presentation
 {
@@ -24,7 +28,7 @@ namespace OnyxNations.Presentation
     /// </summary>
     public sealed class Overlay
     {
-        private readonly World _world;
+        private readonly SimWorld _world;
         private readonly Simulation _sim;
         private readonly bool _russian;
 
@@ -32,7 +36,7 @@ namespace OnyxNations.Presentation
         private int _toastUntilMs;
         private int _tab;
 
-        public Overlay(World world, Simulation sim, bool russian)
+        public Overlay(SimWorld world, Simulation sim, bool russian)
         {
             _world = world;
             _sim = sim;
