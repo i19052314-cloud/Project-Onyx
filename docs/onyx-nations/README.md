@@ -12,6 +12,7 @@
 | [02-milestone-m0-m1.md](02-milestone-m0-m1.md) | Что сделано в M0–M1, как собрать, как проверить в игре, чего там нет |
 | [03-milestone-m2-m7.md](03-milestone-m2-m7.md) | Ядро симуляции M2–M7: армии, бой, оккупация, экономика, мозг ИИ, сохранения, планшет |
 | [04-milestone-m2-m4.md](04-milestone-m2-m4.md) | Границы (M2), выборы и партии (M3), назначения в правительстве (M4) |
+| **[05-build-and-install.md](05-build-and-install.md)** | **Сборка и установка от А до Я: что скачать, как собрать DLL, куда положить, что делать при ошибках** |
 | [map-preview.png](map-preview.png) | Превью разбиения карты ( RSA — синий, ФЗСА — оранжевый, спорные — жёлтый) |
 
 ## Инструменты (`tools/`)
@@ -24,15 +25,20 @@ python3 tools/test_world_data.py    # тесты контракта данных
 python3 tools/check_sources.py      # структурная проверка C# без компилятора
 ```
 
-## Быстрый старт для сборки
+## Быстрый старт
+
+**В репозитории только исходники — готового DLL нет.** Полная инструкция со
+всеми ошибками — в **[05-build-and-install.md](05-build-and-install.md)**.
+Коротко:
 
 1. Положить `ScriptHookVDotNet3.dll` (Legacy, 3.6/3.7) в `lib/shvdn3/`.
 2. Открыть `src/OnyxNations/OnyxNations.csproj` в Visual Studio, собрать Release.
 3. `OnyxNations.dll` → в `<GTA>\scripts\`, `OnyxNations.ini` → туда же,
    папку `OnyxNations/` → в корень игры (рядом с `ProjectOnyx/`).
-4. В игре: `F6` — планшет (сводка / армия / МИД / бюджет, переключение `←` `→`,
-   действие `Enter`), `NumPad1/2` — передать регион государству (dev),
-   `NumPad7/8` — война / мир (dev), `NumPad9` — приказ частям (dev),
-   `NumPad0` — сохранить.
+4. В игре: `F6` — планшет (7 экранов, переключение `←` `→`, действие `Enter`),
+   `NumPad1/2` — передать регион государству (dev), `NumPad7/8` — война / мир,
+   `NumPad9` — приказ частям, `NumPad0` — сохранить.
+5. Проверить `<GTA>\OnyxNations\onyx-nations.log`: строка `ready: 2 nations, 14 regions`
+   означает, что всё работает.
 
 Подробности и честный список ограничений — в [02-milestone-m0-m1.md](02-milestone-m0-m1.md).
