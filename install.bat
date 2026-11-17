@@ -7,8 +7,11 @@ rem    1. finds the GTA V folder - automatically, or you type it, or you drag
 rem       the game folder onto this file
 rem    2. copies ScriptHookVDotNet3.dll from the game folder into lib\shvdn3\
 rem       so the project can be compiled
-rem    3. builds src\OnyxNations\OnyxNations.csproj in Release with MSBuild
-rem       (if Visual Studio is not installed it uses an already built DLL)
+rem    3. builds src\OnyxNations\OnyxNations.csproj in Release
+rem         - MSBuild (Visual Studio / Build Tools) if it is installed
+rem         - otherwise csc.exe, the C# compiler that ships with the .NET
+rem           Framework in C:\Windows - no Visual Studio required
+rem         - otherwise an already built DLL, if one is lying there
 rem    4. backs up every file it is about to overwrite
 rem    5. installs OnyxNations.dll + OnyxNations.ini into <GTA>\scripts\
 rem       and Data\*.xml into <GTA>\OnyxNations\Data\
@@ -160,16 +163,23 @@ if exist "%BUILT%" (
 
 if "%DOBUILD%"=="1" (
   call :find_msbuild
-  if not defined MSBUILD (
-    if not exist "%BUILT%" goto :no_msbuild
-    echo      [warn] MSBuild not found - keeping the existing DLL.
-  ) else (
+  if defined MSBUILD (
     echo      MSBuild: !MSBUILD!
     "%MSBUILD%" "%PROJ%" /p:Configuration=Release /v:minimal /nologo
     if errorlevel 1 goto :build_failed
-    if not exist "%BUILT%" goto :build_failed
-    echo      [ok]   built
+  ) else (
+    echo      no MSBuild / Visual Studio found - using the C# compiler that
+    echo      ships with the .NET Framework instead. That is enough: the project
+    echo      targets .NET Framework 4.8 and C# 7.3, which is exactly what
+    echo      that compiler understands.
+    call :build_with_csc
+    if not "!CSCOK!"=="1" (
+      if not exist "%BUILT%" goto :no_compiler
+      echo      [warn] the compiler produced nothing - keeping the existing DLL.
+    )
   )
+  if not exist "%BUILT%" goto :build_failed
+  echo      [ok]   built
 )
 
 set "DLLSRC=%BUILT%"
@@ -290,6 +300,45 @@ if defined MSBUILD goto :eof
 if exist "%~1" set "MSBUILD=%~1"
 goto :eof
 
+rem ---------------------------------------------------------------------------
+rem  Build with csc.exe out of the .NET Framework directory. Every Windows that
+rem  can run GTA V has it - Visual Studio is not required to compile this
+rem  project, only to feel fancy. The sources and references go into a response
+rem  file because the command line would otherwise be far too long.
+rem ---------------------------------------------------------------------------
+:build_with_csc
+set "CSCOK=0"
+set "CSC="
+if exist "%WinDir%\Microsoft.NET\Framework64\v4.0.30319\csc.exe" set "CSC=%WinDir%\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
+if not defined CSC if exist "%WinDir%\Microsoft.NET\Framework\v4.0.30319\csc.exe" set "CSC=%WinDir%\Microsoft.NET\Framework\v4.0.30319\csc.exe"
+if not defined CSC goto :eof
+echo      csc: %CSC%
+
+for %%C in ("%CSC%") do set "FWDIR=%%~dpC"
+set "FWDIR=%FWDIR:~0,-1%"
+set "RSP=%REPO%\src\OnyxNations\build.rsp"
+
+if not exist "%REPO%\src\OnyxNations\bin\Release" mkdir "%REPO%\src\OnyxNations\bin\Release"
+if exist "%BUILT%" del /f /q "%BUILT%"
+if exist "%RSP%" del /f /q "%RSP%"
+
+>"%RSP%"  echo /nologo
+>>"%RSP%" echo /target:library
+>>"%RSP%" echo /optimize+
+>>"%RSP%" echo /define:TRACE
+>>"%RSP%" echo /out:"%BUILT%"
+>>"%RSP%" echo /reference:"%SHVDNDIR%\ScriptHookVDotNet3.dll"
+for %%R in (System.dll System.Core.dll System.Drawing.dll System.Windows.Forms.dll System.Runtime.Serialization.dll System.Xml.dll System.Xml.Linq.dll) do >>"%RSP%" echo /reference:"%FWDIR%\%%R"
+for /f "usebackq tokens=*" %%F in (`dir /s /b "%REPO%\src\OnyxNations\*.cs" 2^>nul ^| findstr /v /i "\\obj\\" ^| findstr /v /i "\\bin\\"`) do >>"%RSP%" echo "%%F"
+
+"%CSC%" /langversion:7.3 @"%RSP%"
+if errorlevel 1 (
+  echo      [warn] /langversion:7.3 was refused - retrying with the default
+  "%CSC%" @"%RSP%"
+)
+if exist "%BUILT%" set "CSCOK=1"
+goto :eof
+
 :scan_drive
 if defined GTA goto :eof
 call :trygame "%~1:\Program Files (x86)\Steam\steamapps\common\Grand Theft Auto V"
@@ -364,18 +413,23 @@ echo.
 pause
 exit /b 1
 
-:no_msbuild
+:no_compiler
 echo.
-echo    ERROR: no Visual Studio / MSBuild found, and there is no built DLL.
+echo    ERROR: no C# compiler found, and there is no built DLL.
 echo.
-echo    Either:
-echo      open src\OnyxNations\OnyxNations.csproj in Visual Studio,
-echo      set the configuration to Release, press Ctrl+Shift+B, then run
-echo      install.bat again - it will pick up bin\Release\OnyxNations.dll
+echo    Looked for:
+echo      MSBuild  (Visual Studio 2019/2022 or the free Build Tools)
+echo      csc.exe  (%WinDir%\Microsoft.NET\Framework64\v4.0.30319\csc.exe)
 echo.
-echo    or:
-echo      install the "Build Tools for Visual Studio" (free) and run this
-echo      file again.
+echo    The second one is part of the .NET Framework, which GTA V and
+echo    ScriptHookVDotNet already need - so if it is missing, the .NET
+echo    Framework installation itself is broken. Reinstall .NET Framework 4.8
+echo    and run install.bat again.
+echo.
+echo    Otherwise: install the free "Build Tools for Visual Studio 2022" and
+echo    run this file again, or open src\OnyxNations\OnyxNations.csproj in
+echo    Visual Studio, set Release and press Ctrl+Shift+B - install.bat then
+echo    picks up bin\Release\OnyxNations.dll on the next run.
 echo.
 pause
 exit /b 1

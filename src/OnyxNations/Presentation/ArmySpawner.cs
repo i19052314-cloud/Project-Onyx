@@ -79,9 +79,10 @@ namespace OnyxNations.Presentation
                 if (_relationshipGroups.ContainsKey(n.Id)) continue;
                 try
                 {
-                    int group;
-                    GtaWorld.AddRelationshipGroup("ONYXNAT_" + n.Id, out group);
-                    _relationshipGroups[n.Id] = group;
+                    // SHVDN 3.6: World.AddRelationshipGroup(string) returns the
+                    // group, it does not fill an out parameter.
+                    RelationshipGroup group = GtaWorld.AddRelationshipGroup("ONYXNAT_" + n.Id);
+                    _relationshipGroups[n.Id] = group.Hash;
                 }
                 catch (Exception ex)
                 {
@@ -103,7 +104,10 @@ namespace OnyxNations.Presentation
                         Relationship rel = Relationship.Neutral;
                         Nation na = _world.NationById(a.Key);
                         if (na != null && na.IsAtWarWith(b.Key)) rel = Relationship.Hate;
-                        GtaWorld.SetRelationshipBetweenGroups(rel, a.Value, b.Value);
+                        // SHVDN 3.6: this is a method on the group itself, not
+                        // on World - and it is one-directional unless asked.
+                        new RelationshipGroup(a.Value)
+                            .SetRelationshipBetweenGroups(new RelationshipGroup(b.Value), rel);
                     }
                 }
             }

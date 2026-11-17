@@ -1,6 +1,9 @@
 # C# build output (the Onyx RP package itself ships no binaries from src/)
 src/**/bin/
 src/**/obj/
+
+# Response file install.bat writes for the .NET Framework compiler
+src/OnyxNations/build.rsp
 *.user
 *.suo
 .vs/

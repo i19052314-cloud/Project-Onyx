@@ -341,7 +341,11 @@ def main():
         for tname in NEW_RE.findall(code) + TYPEOF_RE.findall(code):
             if tname in types or tname in KNOWN_NAMESPACES:
                 continue
-            if tname in BCL_TYPES or tname in GTA_TYPES or len(tname) == 1 or tname.endswith("Exception"):
+            if tname in BCL_TYPES or tname in BCL_DECLARATION_TYPES:
+                continue
+            if tname in GTA_TYPES or tname in GTA_PUBLIC_TYPES:
+                continue
+            if len(tname) == 1 or tname.endswith("Exception"):
                 continue
             problems.append("%s: unknown type '%s'" % (rel, tname))
 

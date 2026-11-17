@@ -97,16 +97,18 @@ namespace OnyxNations.Presentation
                 if (_relationshipGroups.ContainsKey(n.Id)) continue;
                 try
                 {
-                    int group;
-                    GtaWorld.AddRelationshipGroup("ONYXNAT_BORDER_" + n.Id, out group);
-                    _relationshipGroups[n.Id] = group;
-                    GtaWorld.SetRelationshipBetweenGroups(Relationship.Respect, group, group);
+                    // SHVDN 3.6: World.AddRelationshipGroup(string) returns the
+                    // group; the relationship is then set on the group itself.
+                    RelationshipGroup group = GtaWorld.AddRelationshipGroup("ONYXNAT_BORDER_" + n.Id);
+                    _relationshipGroups[n.Id] = group.Hash;
+                    group.SetRelationshipBetweenGroups(group, Relationship.Respect, true);
 
                     int armyGroup = army != null ? army.RelationshipGroupOf(n.Id) : 0;
                     if (armyGroup != 0)
                     {
-                        GtaWorld.SetRelationshipBetweenGroups(Relationship.Respect, group, armyGroup);
-                        GtaWorld.SetRelationshipBetweenGroups(Relationship.Respect, armyGroup, group);
+                        RelationshipGroup armyGroupRg = new RelationshipGroup(armyGroup);
+                        group.SetRelationshipBetweenGroups(armyGroupRg, Relationship.Respect, true);
+                        armyGroupRg.SetRelationshipBetweenGroups(group, Relationship.Respect, true);
                     }
                 }
                 catch (Exception ex)
@@ -130,7 +132,8 @@ namespace OnyxNations.Presentation
                         Nation na = _world.NationById(a.Key);
                         Relationship rel = na != null && na.IsAtWarWith(b.Key)
                             ? Relationship.Hate : Relationship.Neutral;
-                        GtaWorld.SetRelationshipBetweenGroups(rel, a.Value, b.Value);
+                        new RelationshipGroup(a.Value)
+                            .SetRelationshipBetweenGroups(new RelationshipGroup(b.Value), rel);
                     }
                 }
             }

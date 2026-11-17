@@ -24,8 +24,10 @@
 | `install.bat` | сам находит папку GTA V, сам копирует `ScriptHookVDotNet3.dll` из игры в `lib\shvdn3\`, сам собирает проект через MSBuild, раскладывает файлы по папкам и проверяет, что всё легло куда надо |
 | `uninstall.bat` | снимает модуль; сохранения (`OnyxNations\Saves\`) не трогает, пока вы сами не скажете |
 
-Двойной клик — и всё. Если папку с игрой он не нашёл, перетащите её мышкой на
-`install.bat` либо передайте путь аргументом:
+Двойной клик — и всё. **Visual Studio не нужна** — если MSBuild не найден,
+скрипт собирает DLL компилятором из .NET Framework (подробнее в части 3.0).
+Если папку с игрой он не нашёл, перетащите её мышкой на `install.bat` либо
+передайте путь аргументом:
 
 ```bat
 install.bat "D:\Games\Grand Theft Auto V"
@@ -146,6 +148,22 @@ msbuild src\OnyxNations\OnyxNations.csproj /p:Configuration=Release /p:SHVDN3Dir
 ---
 
 ## Часть 3. Собрать DLL
+
+### 3.0. Visual Studio не обязателен
+
+`install.bat` сначала ищет MSBuild (Visual Studio или бесплатные Build Tools), а
+если его нет — берёт **`csc.exe` из .NET Framework**, тот самый, что лежит в
+
+```
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe
+```
+
+Он есть на любом компьютере, где работает GTA V: ScriptHookVDotNet сам требует
+.NET Framework 4.8. Проект нацелен на .NET Framework 4.8 и C# 7.3 — ровно то,
+что этот компилятор умеет. Так что если вы запускаете `install.bat`, читать
+дальше этой части не нужно: DLL соберётся сама.
+
+Ниже — как собрать руками, если хотите.
 
 ### 3.1. Что нужно из Visual Studio
 

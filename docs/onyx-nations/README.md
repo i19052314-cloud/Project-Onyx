@@ -33,8 +33,9 @@ python3 tools/check_sources.py      # структурная проверка C#
 ### Автоматически (Windows)
 
 Двойной клик по **`install.bat`** в корне репозитория. Он сам найдёт папку GTA V,
-скопирует `ScriptHookVDotNet3.dll` в `lib\shvdn3\`, соберёт проект через
-MSBuild, разложит файлы и проверит результат. `uninstall.bat` — снятие,
+скопирует `ScriptHookVDotNet3.dll` в `lib\shvdn3\`, соберёт проект (MSBuild, а
+если его нет — компилятором `csc.exe` из .NET Framework, поэтому **Visual Studio
+не обязателен**), разложит файлы и проверит результат. `uninstall.bat` — снятие,
 сохранения не трогает. Подробности — в разделе «Быстрый путь: install.bat»
 документа 05.
 
