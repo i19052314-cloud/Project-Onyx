@@ -339,8 +339,45 @@ def check_formulas():
             check(needle in text, "%s still contains '%s'" % (rel, needle))
 
 
+def save_data_classes():
+    """{class name: set of DataMember names} read out of Sim/WorldSave.cs."""
+    text = open(os.path.join(SRC, "Sim", "WorldSave.cs"), encoding="utf-8").read()
+    out = {}
+    for m in re.finditer(r'public sealed class (\w+)\s*\{(.*?)\n    \}', text, re.S):
+        out[m.group(1)] = set(re.findall(r'\[DataMember\(Name = "(\w+)"', m.group(2)))
+    return out
+
+
+def check_save_contract():
+    """The save the C# writes and the save the twin writes must be the same file.
+
+    A class that exists on one side only is how CrossingSaveData slipped through:
+    the twin persisted border crossings for months while the C# had nowhere to
+    put them, and the gap was invisible until the project was compiled for real.
+    """
+    cs = save_data_classes()
+
+    check("CrossingSaveData" in cs, "WorldSave.cs declares CrossingSaveData")
+    members = cs.get("CrossingSaveData") or set()
+    check(members == {"Id", "Manning", "Damage"},
+          "CrossingSaveData carries exactly Id/Manning/Damage (%s)"
+          % ", ".join(sorted(members)))
+    check("Crossings" in (cs.get("WorldSaveData") or set()),
+          "WorldSaveData carries a Crossings list")
+
+    twin = open(os.path.join(HERE, "test_world_data.py"), encoding="utf-8").read()
+    m = re.search(r'\{"Id": "atlantis\|lemuria"[^}]*\}', twin)
+    check(m is not None, "the twin still exercises a crossing entry")
+    if m is not None:
+        keys = set(re.findall(r'"(\w+)":', m.group(0)))
+        check(keys == members,
+              "the twin's crossing keys match the C# DataMembers (%s vs %s)"
+              % (", ".join(sorted(keys)), ", ".join(sorted(members))))
+
+
 def main():
     check_constants()
+    check_save_contract()
     check_unit_types()
     check_armies()
     check_elections()

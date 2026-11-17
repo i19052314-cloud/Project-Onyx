@@ -89,6 +89,31 @@ namespace OnyxNations.Sim
     }
 
     /// <summary>
+    /// The mutable half of a border crossing: how many guards are on post and how
+    /// battered the checkpoint is. Everything else about a crossing - which two
+    /// regions it joins, where on the line it sits, which way it faces - is
+    /// geometry, and geometry is rebuilt from the region graph at every start. So
+    /// a patched Regions.xml cannot leave a stale post behind, and a crossing
+    /// whose two regions ended up in one country simply stops existing.
+    ///
+    /// Both numbers are restored exactly as written. The daily tick already runs
+    /// them through Simulation.Clamp01, so a hand-edited save cannot hold the
+    /// simulation out of range for longer than one tick.
+    /// </summary>
+    [DataContract]
+    public sealed class CrossingSaveData
+    {
+        /// <summary>"regionA|regionB", the two ids sorted - stable across reloads.</summary>
+        [DataMember(Name = "Id")] public string Id;
+
+        /// <summary>Crew level, 0..1. A prop below its MinManning is not placed.</summary>
+        [DataMember(Name = "Manning")] public float Manning;
+
+        /// <summary>0..1. At 1.0 the post is destroyed.</summary>
+        [DataMember(Name = "Damage")] public float Damage;
+    }
+
+    /// <summary>
     /// Everything the world is, minus the geometry: geometry is reloaded from
     /// config every start, so a patched Regions.xml is picked up without breaking
     /// an existing save.
@@ -119,7 +144,8 @@ namespace OnyxNations.Sim
                 ElapsedGameMinutes = 0.0,
                 Regions = new List<RegionSaveData>(),
                 Nations = new List<NationSaveData>(),
-                Units = new List<UnitSaveData>()
+                Units = new List<UnitSaveData>(),
+                Crossings = new List<CrossingSaveData>()
             };
         }
     }

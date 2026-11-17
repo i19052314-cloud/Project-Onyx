@@ -21,7 +21,13 @@ where it is written:
      check cannot see at all: the type exists, the `using` does not;
   6. no bare name is reachable from two imported namespaces at once (CS0104).
      `GTA.World` and `OnyxNations.Sim.World` is the real case: a file that needs
-     both the natives and the simulation state has to alias one of them.
+     both the natives and the simulation state has to alias one of them;
+  7. every type a file *uses* is actually declared somewhere. Rules 5 and 6 both
+     start from a type the project already has; a type that is used in three
+     places and written in none is invisible to them, because there is nothing
+     to resolve. That is how CrossingSaveData shipped: World.cs wrote it,
+     WorldSave.cs stored it, the reference model mirrored it - and the class did
+     not exist.
 
 Usage:  python3 tools/check_sources.py
 Exit code 0 = clean, 1 = problems found.
@@ -57,6 +63,18 @@ KNOWN_NAMESPACES = {"GTA", "GTA.Native", "GTA.Math", "GTA.UI"}
 # appear in both worlds matter, but the list is deliberately a little wider than
 # today's needs: the reference assembly is not available here, so a collision the
 # list misses is a collision the checker misses too.
+# Types that only ever turn up as a *declared* type - a field, a parameter, a
+# generic argument - never as `new X(`, which is all BCL_TYPES above ever sees.
+BCL_DECLARATION_TYPES = {
+    "List", "Dictionary", "HashSet", "SortedDictionary", "Queue", "Stack",
+    "Action", "Func", "EventHandler", "IEnumerable", "IEnumerator", "ICollection",
+    "IList", "IDictionary", "IEquatable", "IComparable", "IDisposable",
+    "Math", "String", "Object", "Type", "Convert", "Enum", "Array", "Guid",
+    "DateTime", "TimeSpan", "DateTimeOffset", "CultureInfo", "Encoding",
+    "Assembly", "AppDomain", "StringComparer", "StringComparison", "CharSet",
+    "JsonReaderWriterFactory", "KeyValuePair", "Nullable", "Tuple", "Lazy",
+}
+
 GTA_PUBLIC_TYPES = {
     "World", "Vehicle", "Ped", "Prop", "Entity", "Blip", "Camera", "Model",
     "Relationship", "RelationshipGroup", "PedGroup", "Weapon", "WeaponAsset",
@@ -161,21 +179,47 @@ DECL_RE = re.compile(
     r'(?<![\w.])([A-Z]\w*)(?:\s*<[^<>=;(){}]*?>)?'
     r'(?=\s+[A-Za-z_]\w*\s*(?:=|;|,|\)|\{|\[))')
 ACCESS_RE = re.compile(r'(?<![\w.])([A-Z]\w*)\s*\.\s*[A-Z]\w*')
+# `new Foo` with the brace on the next line, which NEW_RE's "(" / "[" misses.
+NEW_BRACE_RE = re.compile(r'\bnew\s+([A-Z]\w*)\s*(?:\r?\n)+\s*\{')
 GENERIC_RE = re.compile(r'<([^<>;()]*(?:<[^<>]*>)?[^<>;()]*)>')
 
 
-def type_references(code):
-    """Bare names that stand where C# would resolve a type, as a set."""
-    cands = set()
-    for rx in (NEW_RE, TYPEOF_RE, DECL_RE, ACCESS_RE):
-        for m in rx.finditer(code):
-            cands.add(m.group(1))
+def _generic_args(code):
+    out = set()
     for m in GENERIC_RE.finditer(code):
         for part in m.group(1).split(","):
             tok = part.strip().split(" ")[0]
             if re.match(r"^[A-Z]\w*$", tok):
-                cands.add(tok)
-    return cands
+                out.add(tok)
+    return out
+
+
+def type_references(code):
+    """Bare names that stand where C# would resolve a type, as a set.
+
+    Includes qualified accesses such as `Log.Info` or `Rules.TermDays`. Half of
+    those are fields rather than types, which is fine for rules 5 and 6: they
+    only ever look at names this project declares.
+    """
+    cands = set()
+    for rx in (NEW_RE, NEW_BRACE_RE, TYPEOF_RE, DECL_RE, ACCESS_RE):
+        for m in rx.finditer(code):
+            cands.add(m.group(1))
+    return cands | _generic_args(code)
+
+
+def construction_references(code):
+    """The subset of type_references that cannot be a field or a property.
+
+    `new Foo(`, `new Foo {`, `typeof(Foo)`, a declaration ("Foo foo =") and a
+    generic argument. A qualified `Foo.Bar` is left out on purpose: far too many
+    of them are members, and rule 7 is looking for names nobody declared.
+    """
+    cands = set()
+    for rx in (NEW_RE, NEW_BRACE_RE, TYPEOF_RE, DECL_RE):
+        for m in rx.finditer(code):
+            cands.add(m.group(1))
+    return cands | _generic_args(code)
 
 
 def alias_names(raw):
@@ -385,6 +429,29 @@ def main():
             if len(hits) > 1:
                 problems.append("%s: '%s' is ambiguous between %s (CS0104)"
                                 % (rel, tname, " and ".join(sorted(hits))))
+
+    # -------------------------------------------- 7. used but never declared
+    # The question rules 5 and 6 never get to ask. A name that is used in three
+    # files and written in none is not in `types`, so there is nothing to
+    # resolve and nothing to disambiguate - it simply is not there.
+    for rel, raw in files.items():
+        code = strip_noise(raw)
+        aliases = alias_names(raw)
+        for tname in sorted(construction_references(code)):
+            if tname in types or tname in aliases or tname in namespaces:
+                continue
+            if tname in KNOWN_NAMESPACES or tname in BCL_TYPES:
+                continue
+            if tname in BCL_DECLARATION_TYPES or tname in GTA_TYPES:
+                continue
+            if tname in GTA_PUBLIC_TYPES:
+                continue
+            if len(tname) == 1:                     # a generic parameter: <T>
+                continue
+            if tname.endswith(("Exception", "Attribute", "EventArgs")):
+                continue
+            problems.append("%s: type '%s' is used but declared nowhere in the "
+                            "project (CS0246)" % (rel, tname))
 
     # ----------------------------------------------------------------- report
     print("\n=== CHECK ===")

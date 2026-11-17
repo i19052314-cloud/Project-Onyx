@@ -213,9 +213,9 @@ record = (рейтинг − 50)/200 + (настроение − 0.60)*0.20 − 
 | Проверка | Результат |
 |---|---|
 | `sim_reference.py --years 2` | `SIMULATION MODEL PASSED (0 failures)`, 53 проверки |
-| `check_parity.py` | 239 проверок, 0 расхождений |
+| `check_parity.py` | 244 проверки, 0 расхождений |
 | `test_world_data.py` | 832 проверки, 0 отказов |
-| `check_sources.py` | 35 файлов, 81 тип, 0/0 |
+| `check_sources.py` | 35 файлов, 82 типа, 0/0 |
 
 ---
 
