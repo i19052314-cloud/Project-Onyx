@@ -2,8 +2,8 @@
 src/**/bin/
 src/**/obj/
 
-# Response file install.bat writes for the .NET Framework compiler
-src/OnyxNations/build.rsp
+# Response files the .bat builds write for the .NET Framework compiler
+src/**/build*.rsp
 *.user
 *.suo
 .vs/

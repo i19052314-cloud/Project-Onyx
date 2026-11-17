@@ -38,8 +38,19 @@ import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSPROJ = os.path.join(ROOT, "src", "OnyxNations", "OnyxNations.csproj")
-SRCDIR = os.path.join(ROOT, "src", "OnyxNations")
+# Every C# project in src\. The checker walks all of them: a rule that only
+# covered one project would happily ignore a broken csproj in the next one.
+PROJECTS = [
+    ("OnyxNations",
+     os.path.join(ROOT, "src", "OnyxNations", "OnyxNations.csproj"),
+     os.path.join(ROOT, "src", "OnyxNations")),
+    ("OnyxAdmin",
+     os.path.join(ROOT, "src", "OnyxAdmin", "OnyxAdmin.csproj"),
+     os.path.join(ROOT, "src", "OnyxAdmin")),
+]
+
+CSPROJ = PROJECTS[0][1]
+SRCDIR = PROJECTS[0][2]
 
 KNOWN_PREFIXES = ("System", "Microsoft")
 
@@ -230,30 +241,6 @@ def main():
     problems = []
     warnings = []
 
-    if not os.path.isfile(CSPROJ):
-        print("[!] csproj not found: %s" % CSPROJ)
-        return 1
-
-    # ---------------------------------------------------------- 1. file list
-    csproj = open(CSPROJ, encoding="utf-8").read()
-    declared = re.findall(r'<Compile Include="([^"]+)"', csproj)
-    declared = [d.replace("\\", os.sep) for d in declared]
-    on_disk = []
-    for dirpath, _, filenames in os.walk(SRCDIR):
-        for fn in filenames:
-            if fn.endswith(".cs"):
-                on_disk.append(os.path.relpath(os.path.join(dirpath, fn), SRCDIR))
-
-    for rel in declared:
-        if not os.path.isfile(os.path.join(SRCDIR, rel)):
-            problems.append("csproj lists %s but the file does not exist" % rel)
-    for rel in on_disk:
-        if rel not in declared:
-            warnings.append("%s is on disk but not in the csproj" % rel)
-
-    print("[i] csproj lists %d files, %d .cs files on disk" % (len(declared), len(on_disk)))
-
-    # ------------------------------------------------------ 2. parse sources
     namespaces = set()
     types = {}          # type name -> set(member names)
     type_ns = {}        # type name -> namespace it is declared in
@@ -261,42 +248,69 @@ def main():
     file_ns = {}        # relative path -> namespace of the file
     files = {}
 
-    for rel in declared:
-        path = os.path.join(SRCDIR, rel)
-        if not os.path.isfile(path):
-            continue
-        raw = open(path, encoding="utf-8").read()
-        files[rel] = raw
-        code = strip_noise(raw)
+    for proj_name, csproj_path, src_dir in PROJECTS:
+        if not os.path.isfile(csproj_path):
+            print("[!] csproj not found: %s" % csproj_path)
+            return 1
 
-        if not balanced(code):
-            problems.append("%s: unbalanced braces/parens/brackets" % rel)
+        # ------------------------------------------------------ 1. file list
+        csproj = open(csproj_path, encoding="utf-8").read()
+        declared = re.findall(r'<Compile Include="([^"]+)"', csproj)
+        declared = [d.replace("\\", os.sep) for d in declared]
+        on_disk = []
+        for dirpath, _, filenames in os.walk(src_dir):
+            for fn in filenames:
+                if fn.endswith(".cs"):
+                    on_disk.append(os.path.relpath(os.path.join(dirpath, fn), src_dir))
 
-        for ns in NAMESPACE_RE.findall(raw):
-            namespaces.add(ns)
+        for rel in declared:
+            if not os.path.isfile(os.path.join(src_dir, rel)):
+                problems.append("%s: csproj lists %s but the file does not exist"
+                                % (proj_name, rel))
+        for rel in on_disk:
+            if rel not in declared:
+                warnings.append("%s: %s is on disk but not in the csproj"
+                                % (proj_name, rel))
 
-        nsmatch = NAMESPACE_RE.search(raw)
-        file_ns[rel] = nsmatch.group(1) if nsmatch else ""
+        print("[i] %-12s csproj lists %d files, %d .cs files on disk"
+              % (proj_name, len(declared), len(on_disk)))
 
-        for tname in TYPE_RE.findall(raw):
-            types.setdefault(tname, set())
-            type_ns.setdefault(tname, file_ns[rel])
-            type_nss.setdefault(tname, set()).add(file_ns[rel])
+        # --------------------------------------------------- 2. parse sources
+        # Keys are prefixed with the project name: both projects ship a
+        # Core\\Log.cs, and without the prefix one would overwrite the other.
+        for rel in declared:
+            key = proj_name + "/" + rel
+            path = os.path.join(src_dir, rel)
+            if not os.path.isfile(path):
+                continue
+            raw = open(path, encoding="utf-8").read()
+            files[key] = raw
+            code = strip_noise(raw)
 
-        # enum members: `A,` / `B = 3,` inside an enum body. Trailing comments
-        # are stripped first — most enums here are annotated member by member.
-        for tname, body in ENUM_RE.findall(raw):
-            members = types.setdefault(tname, set())
-            body = re.sub(r'//[^\n]*', '', body)
-            body = re.sub(r'/\*.*?\*/', '', body, flags=re.S)
-            for chunk in body.split(","):
-                m = ENUM_MEMBER_RE.match(chunk.strip())
-                if m:
-                    members.add(m.group(1))
+            if not balanced(code):
+                problems.append("%s: unbalanced braces/parens/brackets" % key)
 
-        for m in MEMBER_RE.findall(raw):
-            # members belong to the type declared most recently before them
-            pass
+            for ns in NAMESPACE_RE.findall(raw):
+                namespaces.add(ns)
+
+            nsmatch = NAMESPACE_RE.search(raw)
+            file_ns[key] = nsmatch.group(1) if nsmatch else ""
+
+            for tname in TYPE_RE.findall(raw):
+                types.setdefault(tname, set())
+                type_ns.setdefault(tname, file_ns[key])
+                type_nss.setdefault(tname, set()).add(file_ns[key])
+
+            # enum members: `A,` / `B = 3,` inside an enum body. Trailing comments
+            # are stripped first -- most enums here are annotated member by member.
+            for tname, body in ENUM_RE.findall(raw):
+                members = types.setdefault(tname, set())
+                body = re.sub(r'//[^\n]*', '', body)
+                body = re.sub(r'/\*.*?\*/', '', body, flags=re.S)
+                for chunk in body.split(","):
+                    m = ENUM_MEMBER_RE.match(chunk.strip())
+                    if m:
+                        members.add(m.group(1))
 
     # second pass: attach members to the type they follow
     for rel, raw in files.items():
@@ -386,11 +400,31 @@ def main():
         for tname in sorted(type_references(code)):
             if tname not in types:
                 continue
-            tns = type_ns.get(tname, "")
-            if tns == ns or ns.startswith(tns + ".") or tns in usings:
+            # A name can be declared in more than one namespace once there is
+            # more than one project - both ship a Log, and both ship a Draw. The
+            # reference is fine if ANY of those namespaces is reachable from this
+            # file, so ask type_nss (every namespace) rather than type_ns (the
+            # first one seen).
+            nss = sorted(type_nss.get(tname, set())) or [""]
+            reachable = False
+            for tns in nss:
+                if tns == ns or ns.startswith(tns + ".") or tns in usings:
+                    reachable = True
+                    break
+            if reachable:
+                continue
+
+            # The same name may also live in the reference assembly. `World` is
+            # the case in point: OnyxNations.Sim declares one, and GTA declares
+            # another that a file importing GTA is plainly referring to. Rule 5
+            # only tracks types declared here, so an external match has to be
+            # ruled out before calling the reference unresolvable.
+            if (tname in GTA_TYPES or tname in GTA_PUBLIC_TYPES) \
+                    and any(u == "GTA" or u.startswith("GTA.") for u in usings):
                 continue
             problems.append("%s: '%s' is declared in namespace %s, which this file "
-                            "does not import (CS0246)" % (rel, tname, tns or "<global>"))
+                            "does not import (CS0246)"
+                            % (rel, tname, " / ".join(nss) or "<global>"))
 
         # Layering. The simulation is the half the Python reference model mirrors
         # and the half that must compile without any GTA-facing layer present.
