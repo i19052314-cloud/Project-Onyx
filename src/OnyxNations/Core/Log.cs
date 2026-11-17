@@ -11,11 +11,15 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 
-namespace OnyxNations.Core
+namespace OnyxNations
 {
     /// <summary>
     /// Plain file log. Never throws into game code: a logging failure must not be
     /// able to take the script down.
+    ///
+    /// Cross-cutting: lives in the root namespace so that Core, Sim and
+    /// Presentation all see it without importing Core. The simulation logs
+    /// a lot, and Sim must not depend on Core.
     /// </summary>
     public static class Log
     {

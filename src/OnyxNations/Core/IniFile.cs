@@ -10,12 +10,15 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace OnyxNations.Core
+namespace OnyxNations
 {
     /// <summary>
     /// Minimal INI reader over the Win32 profile API - the same mechanism every
     /// GTA V script uses, so no extra dependency and no surprises with SHVDN's
     /// own settings class. Read-only: the file is authored by hand.
+    ///
+    /// Cross-cutting, see Log: root namespace so Settings can use it and
+    /// nothing in Sim ever needs to.
     /// </summary>
     public sealed class IniFile
     {

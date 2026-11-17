@@ -80,6 +80,7 @@
     <Compile Include="Sim\Nation.cs" />
     <Compile Include="Sim\Region.cs" />
     <Compile Include="Sim\Vec2.cs" />
+    <Compile Include="Sim\WorldData.cs" />
     <Compile Include="Sim\World.cs" />
     <Compile Include="Sim\WorldSave.cs" />
     <Compile Include="Sim\SimTuning.cs" />

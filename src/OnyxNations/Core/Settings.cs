@@ -8,9 +8,13 @@
 
 using WF = System.Windows.Forms;
 
-namespace OnyxNations.Core
+namespace OnyxNations
 {
-    /// <summary>Runtime settings from OnyxNations.ini (next to the DLL in scripts\).</summary>
+    /// <summary>
+    /// Runtime settings from OnyxNations.ini (next to the DLL in scripts\).
+    /// Cross-cutting, see Log: root namespace so the simulation can read
+    /// settings without importing Core.
+    /// </summary>
     public sealed class Settings
     {
         public bool Enabled = true;

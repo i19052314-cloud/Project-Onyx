@@ -14,7 +14,11 @@ where it is written:
   3. every `using X;` resolves to a System namespace, a GTA (ScriptHookVDotNet)
      namespace or one of this project's own namespaces;
   4. every `new TypeName(`, `typeof(TypeName)` and `TypeName.Member` reference
-     names a type and member this project actually declares.
+     names a type and member this project actually declares;
+  5. every project type a file mentions is actually *reachable* from that file's
+     namespace - own namespace, an enclosing namespace, or an imported one. This
+     is CS0246, the error a compiler reports in a second and a whitespace-level
+     check cannot see at all: the type exists, the `using` does not.
 
 Usage:  python3 tools/check_sources.py
 Exit code 0 = clean, 1 = problems found.
@@ -159,6 +163,8 @@ def main():
     # ------------------------------------------------------ 2. parse sources
     namespaces = set()
     types = {}          # type name -> set(member names)
+    type_ns = {}        # type name -> namespace it is declared in
+    file_ns = {}        # relative path -> namespace of the file
     files = {}
 
     for rel in declared:
@@ -175,8 +181,12 @@ def main():
         for ns in NAMESPACE_RE.findall(raw):
             namespaces.add(ns)
 
+        nsmatch = NAMESPACE_RE.search(raw)
+        file_ns[rel] = nsmatch.group(1) if nsmatch else ""
+
         for tname in TYPE_RE.findall(raw):
             types.setdefault(tname, set())
+            type_ns.setdefault(tname, file_ns[rel])
 
         # enum members: `A,` / `B = 3,` inside an enum body. Trailing comments
         # are stripped first — most enums here are annotated member by member.
@@ -258,6 +268,57 @@ def main():
                                 % (rel, tname, member))
             else:
                 problems.append("%s: %s.%s is not declared on %s" % (rel, tname, member, tname))
+
+    # ----------------------------------------------- 5. namespace visibility
+    # A bare type name is resolved by C# against the file's own namespace, then
+    # every enclosing namespace, then the `using` directives - and nothing else.
+    # Rule 4 only proves that a type exists somewhere in the project; it cannot
+    # see that the file reaching for it never imported the namespace. That is
+    # exactly how a build breaks with "the type or namespace name 'X' could not
+    # be found" while every file still looks tidy on its own.
+    #
+    # Only project types are checked: BCL and SHVDN types are not declared here,
+    # so nothing can be said about them without the reference assembly.
+    DECL_RE = re.compile(
+        r'(?<![\w.])([A-Z]\w*)(?:\s*<[^<>=;(){}]*?>)?'
+        r'(?=\s+[A-Za-z_]\w*\s*(?:=|;|,|\)|\{|\[))')
+    ACCESS_RE = re.compile(r'(?<![\w.])([A-Z]\w*)\s*\.\s*[A-Z]\w*')
+    GENERIC_RE = re.compile(r'<([^<>;()]*(?:<[^<>]*>)?[^<>;()]*)>')
+
+    for rel, raw in files.items():
+        ns = file_ns.get(rel, "")
+        usings = [target for alias, target in USING_RE.findall(raw) if not alias]
+        code = strip_noise(raw)
+
+        cands = set()
+        for rx in (NEW_RE, TYPEOF_RE, DECL_RE, ACCESS_RE):
+            for m in rx.finditer(code):
+                cands.add(m.group(1))
+        for m in GENERIC_RE.finditer(code):
+            for part in m.group(1).split(","):
+                tok = part.strip().split(" ")[0]
+                if re.match(r"^[A-Z]\w*$", tok):
+                    cands.add(tok)
+
+        for tname in sorted(cands):
+            if tname not in types:
+                continue
+            tns = type_ns.get(tname, "")
+            if tns == ns or ns.startswith(tns + ".") or tns in usings:
+                continue
+            problems.append("%s: '%s' is declared in namespace %s, which this file "
+                            "does not import (CS0246)" % (rel, tname, tns or "<global>"))
+
+        # Layering. The simulation is the half the Python reference model mirrors
+        # and the half that must compile without any GTA-facing layer present.
+        # Core imports Sim, never the other way round; cross-cutting utilities
+        # (Log, Settings, IniFile) sit in the root namespace so that every layer
+        # sees them without importing anything.
+        if ns.startswith("OnyxNations.Sim"):
+            for u in usings:
+                if u.startswith("OnyxNations.Core") or u.startswith("OnyxNations.Presentation"):
+                    warnings.append("%s: the Sim layer imports %s - the dependency "
+                                    "arrow must point Sim-wards" % (rel, u))
 
     # ----------------------------------------------------------------- report
     print("\n=== CHECK ===")
