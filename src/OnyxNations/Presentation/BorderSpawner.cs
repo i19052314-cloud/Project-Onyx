@@ -38,6 +38,17 @@ namespace OnyxNations.Presentation
             public List<Ped> Guards = new List<Ped>();
             public List<Vehicle> Vehicles = new List<Vehicle>();
             public BorderPosture Posture;
+            public int ManningBucket;
+        }
+
+        /// <summary>
+        /// Manning quantized to tenths. A prop appears or disappears when the crew
+        /// level crosses its MinManning, so the post has to be rebuilt whenever the
+        /// bucket changes — otherwise a post that lost its crew keeps its gate.
+        /// </summary>
+        private static int ManningBucket(float manning)
+        {
+            return (int)(manning * 10f);
         }
 
         private readonly Sim.World _world;
@@ -196,18 +207,18 @@ namespace OnyxNations.Presentation
             if (ownerA == null) return;
 
             Post post = new Post { CrossingId = crossing.Id };
-            Vector3 basePos = new Vector3(crossing.Position.X, crossing.Position.Y,
-                GroundZ(crossing.Position));
 
-            // ---- barriers and the tower -----------------------------------
+            // ---- gate, barriers, cones, guard huts --------------------------
             for (int i = 0; i < _borders.Models.Props.Count; i++)
             {
                 BorderPropDef def = _borders.Models.Props[i];
                 if (def == null || string.IsNullOrEmpty(def.Model)) continue;
-                if (def.Role == "tower" && crossing.Manning < 0.6f) continue;  // towers need crews
+                if (crossing.Manning < def.MinManning) continue;   // abandoned posts lose their kit
+
+                Vec2 at = BorderSystem.Place(crossing, def.Forward, def.Side);
                 Prop prop = CreateProp(def.Model,
-                    new Vector3(basePos.X + def.OffsetX, basePos.Y + def.OffsetY, basePos.Z),
-                    def.Heading);
+                    new Vector3(at.X, at.Y, GroundZ(at)),
+                    BorderSystem.HeadingFor(crossing, def.Mode, def.Heading));
                 if (prop != null) post.Props.Add(prop);
             }
 
@@ -218,10 +229,11 @@ namespace OnyxNations.Presentation
                 string model = GuardModelFor(ownerA, crossing);
                 for (int i = 0; i < wanted; i++)
                 {
-                    float side = (i % 2 == 0) ? -2.2f : 2.2f;
-                    Ped ped = CreateGuard(model,
-                        new Vector3(basePos.X + side, basePos.Y + 1.5f, basePos.Z), ownerA.Id);
+                    // Flanking the gate, in the border's own frame.
+                    Vec2 at = BorderSystem.Place(crossing, 2.0f, (i % 2 == 0) ? -2.6f : 2.6f);
+                    Ped ped = CreateGuard(model, new Vector3(at.X, at.Y, GroundZ(at)), ownerA.Id);
                     if (ped == null) continue;
+                    ped.Heading = BorderSystem.HeadingAcross(crossing);
                     post.Guards.Add(ped);
                     SpawnedGuards++;
                 }
@@ -234,13 +246,18 @@ namespace OnyxNations.Presentation
                 {
                     BorderVehicleDef def = _borders.Models.Vehicles[i];
                     if (def == null || string.IsNullOrEmpty(def.Model)) continue;
-                    Vehicle veh = CreateVehicle(def.Model,
-                        new Vector3(basePos.X + 7f, basePos.Y - 3f, basePos.Z));
-                    if (veh != null) post.Vehicles.Add(veh);
+                    Vec2 at = BorderSystem.Place(crossing, -13.0f, 5.0f);
+                    Vehicle veh = CreateVehicle(def.Model, new Vector3(at.X, at.Y, GroundZ(at)));
+                    if (veh != null)
+                    {
+                        veh.Heading = BorderSystem.HeadingAcross(crossing);
+                        post.Vehicles.Add(veh);
+                    }
                 }
             }
 
             post.Posture = _borders.Posture(crossing, ownerA, PlayerNation());
+            post.ManningBucket = ManningBucket(crossing.Manning);
             _posts[crossing.Id] = post;
             Log.Debug("border post '{0}' materialized ({1} props, {2} guards, {3})",
                 crossing.Id, post.Props.Count, post.Guards.Count,
@@ -276,6 +293,7 @@ namespace OnyxNations.Presentation
             Nation player = PlayerNation();
             if (player == null) return;
 
+            List<string> rebuild = new List<string>();
             foreach (KeyValuePair<string, Post> kv in _posts)
             {
                 BorderCrossing crossing = CrossingById(kv.Key);
@@ -288,11 +306,20 @@ namespace OnyxNations.Presentation
                 BorderPosture posture = _borders.Posture(crossing, owner, player);
                 float distance = DistanceXy(playerPosition, crossing.Position);
 
-                // The posture just changed: swap the guards' uniforms.
+                // The posture changed: swap the guards' uniforms.
                 if (posture != post.Posture)
                 {
                     post.Posture = posture;
                     RespawnGuards(crossing, post, owner);
+                }
+
+                // The crew level moved across a prop's threshold: the post has to
+                // be rebuilt. Collected rather than done here, because rebuilding
+                // edits the dictionary this loop is iterating over.
+                if (ManningBucket(crossing.Manning) != post.ManningBucket)
+                {
+                    rebuild.Add(crossing.Id);
+                    continue;
                 }
 
                 if (distance > _borders.Settings.CheckpointRadiusMetres) continue;
@@ -327,6 +354,14 @@ namespace OnyxNations.Presentation
                     }
                 }
             }
+
+            for (int i = 0; i < rebuild.Count; i++)
+            {
+                BorderCrossing crossing = CrossingById(rebuild[i]);
+                if (crossing == null) continue;
+                Despawn(rebuild[i]);
+                Spawn(crossing);
+            }
         }
 
         private void RespawnGuards(BorderCrossing crossing, Post post, Nation owner)
@@ -346,11 +381,11 @@ namespace OnyxNations.Presentation
             int wanted = Math.Min(_borders.Settings.GuardsPerPost, _maxGuards - SpawnedGuards);
             for (int i = 0; i < wanted; i++)
             {
-                float side = (i % 2 == 0) ? -2.2f : 2.2f;
+                Vec2 at = BorderSystem.Place(crossing, 2.0f, (i % 2 == 0) ? -2.6f : 2.6f);
                 Ped ped = CreateGuard(GuardModelFor(owner, crossing),
-                    new Vector3(crossing.Position.X + side, crossing.Position.Y + 1.5f,
-                        GroundZ(crossing.Position)), owner.Id);
+                    new Vector3(at.X, at.Y, GroundZ(at)), owner.Id);
                 if (ped == null) continue;
+                ped.Heading = BorderSystem.HeadingAcross(crossing);
                 post.Guards.Add(ped);
                 SpawnedGuards++;
             }

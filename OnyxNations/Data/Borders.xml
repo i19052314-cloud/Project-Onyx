@@ -10,7 +10,7 @@
 <!-- ONYX RP: NATIONS & WAR — physical borders (milestone M2).
 
      Where the checkpoints come from
-     ===============================
+====================================
      The crossings are NOT listed here one by one. They are derived at runtime
      from Regions.xml: for every pair of adjacent regions held by different
      states, the post goes on the edge the two region polygons share. Add a
@@ -20,20 +20,40 @@
      unplayable (in the sea, on a cliff) and you want the post moved to the
      actual road.
 
+     How a post is laid out
+===========================
+     Every prop is placed relative to the border, not to the world axes, so the
+     same layout works on a north-south frontier and on an east-west one:
+
+       Forward   metres along the travel direction (region A -> region B).
+                 The post is manned by region A's owner, so NEGATIVE Forward is
+                 the defenders' side and POSITIVE Forward is the approach.
+       Side      metres across it, perpendicular to the travel direction
+       Mode      Across  — the prop faces the oncoming traveller
+                 Along   — the prop lies parallel to the border line
+                 Fixed   — no rotation, the heading is used as given
+       Heading   extra rotation in degrees, on top of the mode
+       MinManning  0..1, the crew level below which the prop is not placed
+                   (a wrecked or abandoned post loses its gate and its hut)
+
+     Because the border is the perpendicular bisector of the two centroids,
+     anything at Forward = 0 is exactly on it and anything at Forward < 0 is
+     measurably on the defenders' side. The reference model asserts exactly
+     that for every prop configured here.
+
      Model names
-     ===========
-     Every model below is checked with IS_MODEL_IN_CDIMAGE before it is ever
-     spawned, so a wrong name costs you one missing prop and one line in the
-     log — not a crash. They are still worth verifying in game; see
-     docs/onyx-nations/03-milestone-m2-m7.md.
+================
+     The names below are the ones verified in game. Every model is still checked
+     with IS_MODEL_IN_CDIMAGE before it is spawned, so a name that turns out to
+     be wrong costs one missing prop and one line in the log, not a crash.
 
      Reaction bands
-     ==============
+===================
      Relations decide what a guard does when the player walks up to a post:
-       >= OpenAbove   open      — wave through
-       >= InspectAbove inspect  — stop, check, let through
-       >= ClosedBelow closed    — denied entry, escort back
-       at war                   — hostile, shoot on sight
+       >= OpenAbove      open      — wave through
+       >= InspectAbove   inspect   — stop, check, let through
+       below that        closed    — denied entry, escort back
+       at war                      — hostile, shoot on sight
 -->
 
 <OnyxNations>
@@ -49,15 +69,30 @@
       ClosedBelow="-20" />
 
   <Models>
-    <!-- Barrier / gate props -->
-    <Prop Model="prop_mp_conc_barrier_01" OffsetX="-3.5" OffsetY="0"   Heading="90"  Role="barrier"/>
-    <Prop Model="prop_mp_conc_barrier_01" OffsetX="3.5"  OffsetY="0"   Heading="90"  Role="barrier"/>
-    <Prop Model="prop_barrier_work05"     OffsetX="0"    OffsetY="-2"  Heading="0"   Role="sign"/>
-    <!-- Watchtower: verify in game; skipped silently if the model is absent. -->
-    <Prop Model="prop_watchtower_02"      OffsetX="9"    OffsetY="9"   Heading="45"  Role="tower"/>
+    <!-- The gate itself, across the road -->
+    <Prop Model="prop_gate_military_01" Forward="0"  Side="0"    Heading="0"  Mode="Across" MinManning="0.50" Role="gate"/>
+
+    <!-- Barriers running along the border on both sides of the gate -->
+    <Prop Model="prop_sec_barrier_ld_01a" Forward="0" Side="-5.5" Heading="0"  Mode="Along"  MinManning="0.20" Role="barrier"/>
+    <Prop Model="prop_sec_barrier_ld_02a" Forward="0" Side="5.5"  Heading="0"  Mode="Along"  MinManning="0.20" Role="barrier"/>
+
+    <!-- Second line, on the defenders' side: stops anyone driving round it -->
+    <Prop Model="prop_sec_barier_04b"    Forward="-7" Side="-3.5" Heading="0"  Mode="Along"  MinManning="0.45" Role="barrier"/>
+    <Prop Model="prop_sec_barier_02a"    Forward="-7" Side="3.5"  Heading="0"  Mode="Along"  MinManning="0.45" Role="barrier"/>
+
+    <!-- Cones on the approach: always placed, they cost nothing -->
+    <Prop Model="prop_roadcone02a"       Forward="6" Side="-2.4" Heading="0" Mode="Fixed"  MinManning="0.0"  Role="cone"/>
+    <Prop Model="prop_roadcone02a"       Forward="6" Side="2.4"  Heading="0" Mode="Fixed"  MinManning="0.0"  Role="cone"/>
+
+    <!-- Signboard in front of the gate, facing the traffic -->
+    <Prop Model="prop_barrier_work01a"   Forward="3"  Side="-1.8" Heading="0" Mode="Across" MinManning="0.10" Role="sign"/>
+
+    <!-- Guard huts: only while the post is actually manned, behind the line -->
+    <Prop Model="prop_portacabin01"      Forward="-11" Side="7.5"  Heading="0" Mode="Across" MinManning="0.35" Role="guardhouse"/>
+    <Prop Model="prop_portacabin02"      Forward="-11" Side="-7.5" Heading="0" Mode="Across" MinManning="0.60" Role="guardhouse"/>
 
     <!-- Guards: the peacetime uniform, and what they change into when the
-         border closes. -->
+         border closes or the two states go to war. -->
     <Ped Model="s_m_m_security_01" Role="guard"/>
     <Ped Model="s_m_m_marine_01"  Role="guardClosed"/>
     <Ped Model="s_m_y_swat_01"    Role="guardWar"/>
@@ -68,15 +103,10 @@
 
   <Overrides>
     <!-- Hand-placed crossings (X/Y in world coordinates). Anything listed here
-         replaces the computed midpoint for that pair. -->
+         replaces the computed point for that pair. -->
     <!--
     <Crossing RegionA="west_ls" RegionB="zancudo" X="-1900.0" Y="2900.0"
               Name="Zancudo Gate" NameRu="КПП «Занкудо»"/>
     -->
   </Overrides>
-
-  <Destroyed>
-    <!-- A crossing can be knocked out by fighting. It rebuilds at ManningPerDay
-         only if the owner still holds both sides of it. -->
-  </Destroyed>
 </OnyxNations>

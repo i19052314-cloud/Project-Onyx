@@ -270,10 +270,71 @@ class BorderCrossing(object):
         self.name = name or ("Checkpoint %s/%s" % (a, b))
         self.manning = 0.5
         self.damage = 0.0
+        self.forward = (0.0, 1.0)     # travel direction, A -> B
+        self.side = (1.0, 0.0)        # across it, parallel to the border
+        self.heading_across = 0.0     # GTA heading: 0 = north, 90 = east
+        self.heading_along = 90.0
 
     @property
     def destroyed(self):
         return self.damage >= 1.0
+
+
+def set_frame(crossing, ra, rb):
+    """Local frame a checkpoint is laid out in.
+
+    Props are placed relative to the border, not to the world axes, so one
+    layout works on a north-south frontier and on an east-west one. Forward
+    points from A towards B; side is perpendicular to it.
+    """
+    ax, ay = ra.centroid
+    bx, by = rb.centroid
+    dx, dy = bx - ax, by - ay
+    length = math.hypot(dx, dy)
+    if length < 0.001:
+        dx, dy = 0.0, 1.0
+    else:
+        dx, dy = dx / length, dy / length
+    crossing.forward = (dx, dy)
+    crossing.side = (-dy, dx)
+    crossing.heading_across = math.degrees(math.atan2(dx, dy)) % 360.0
+    crossing.heading_along = math.degrees(math.atan2(-dy, dx)) % 360.0
+    return crossing
+
+
+def place(crossing, forward, side):
+    """World position of a point given in border-relative metres."""
+    fx, fy = crossing.forward
+    sx, sy = crossing.side
+    return (crossing.position[0] + fx * forward + sx * side,
+            crossing.position[1] + fy * forward + sy * side)
+
+
+def heading_for(crossing, mode, extra=0.0):
+    base = {"along": crossing.heading_along, "fixed": 0.0}.get(
+        (mode or "across").lower(), crossing.heading_across)
+    return (base + extra) % 360.0
+
+
+def load_border_props():
+    """The verified prop layout from OnyxNations/Data/Borders.xml."""
+    import xml.etree.ElementTree as ET
+    path = os.path.join(DATA, "Borders.xml")
+    if not os.path.isfile(path):
+        return []
+    models = ET.parse(path).getroot().find("Models")
+    out = []
+    for el in models.findall("Prop"):
+        out.append({
+            "model": el.get("Model"),
+            "forward": float(el.get("Forward") or 0),
+            "side": float(el.get("Side") or 0),
+            "heading": float(el.get("Heading") or 0),
+            "mode": el.get("Mode") or "Across",
+            "min_manning": float(el.get("MinManning") or 0),
+            "role": el.get("Role") or "",
+        })
+    return out
 
 
 def dist_to_segment(p, a, b):
@@ -339,7 +400,7 @@ def compute_borders(world):
             mid = shared_edge_midpoint(r.polygon, other.polygon) or (
                 (r.centroid[0] + other.centroid[0]) / 2.0,
                 (r.centroid[1] + other.centroid[1]) / 2.0)
-            out.append(BorderCrossing(rid, nb, mid))
+            out.append(set_frame(BorderCrossing(rid, nb, mid), r, other))
     return out
 
 
@@ -1412,6 +1473,94 @@ def main():
                       if nearest_region(border_world, c.position) in (c.a, c.b))
     ok(on_boundary == len(crossings),
        "a crossing never lands in a third region (%d/%d)" % (on_boundary, len(crossings)))
+
+    # ---- the local frame the prop layout is built in ------------------------
+    ok(all(abs(math.hypot(*c.forward) - 1.0) < 1e-6 for c in crossings),
+       "the forward vector of every crossing is a unit vector")
+    ok(all(abs(c.forward[0] * c.side[0] + c.forward[1] * c.side[1]) < 1e-6
+           for c in crossings),
+       "forward and side are perpendicular at every crossing")
+    pointing = 0
+    for c in crossings:
+        a = border_world.regions[c.a]
+        b = border_world.regions[c.b]
+        to_b = (b.centroid[0] - a.centroid[0], b.centroid[1] - a.centroid[1])
+        if c.forward[0] * to_b[0] + c.forward[1] * to_b[1] > 0:
+            pointing += 1
+    ok(pointing == len(crossings),
+       "forward always points from region A towards region B (%d/%d)"
+       % (pointing, len(crossings)))
+    ok(all(0.0 <= c.heading_across < 360.0 and 0.0 <= c.heading_along < 360.0
+           for c in crossings),
+       "both headings are normalized into 0..360")
+    ok(all(abs((c.heading_across - c.heading_along) % 360.0 - 90.0) < 1e-4
+           for c in crossings),
+       "the 'along' heading is a quarter turn from the 'across' heading")
+
+    # a pure side offset moves along the border; a pure forward offset does not
+    probe = crossings[0]
+    pure_side = place(probe, 0.0, 5.0)
+    pure_fwd = place(probe, 5.0, 0.0)
+    side_vec = (pure_side[0] - probe.position[0], pure_side[1] - probe.position[1])
+    fwd_vec = (pure_fwd[0] - probe.position[0], pure_fwd[1] - probe.position[1])
+    ok(abs(side_vec[0] * probe.forward[0] + side_vec[1] * probe.forward[1]) < 1e-3,
+       "a side offset moves exactly across the travel direction")
+    ok(abs(fwd_vec[0] * probe.side[0] + fwd_vec[1] * probe.side[1]) < 1e-3,
+       "a forward offset moves exactly along the travel direction")
+    ok(abs(math.hypot(*fwd_vec) - 5.0) < 1e-3 and abs(math.hypot(*side_vec) - 5.0) < 1e-3,
+       "offsets are in metres, not scaled")
+
+    # ---- the configured layout sits on the right side of the line -----------
+    # The border is the perpendicular bisector of the two centroids, so a prop's
+    # Forward sign decides which country it ends up in. Anything that is supposed
+    # to belong to the defenders (the post is manned by region A's owner) must
+    # come out measurably on A's side.
+    props = load_border_props()
+    ok(len(props) > 0, "Borders.xml defines a prop layout (%d props)" % len(props))
+    ok(all(p["mode"].lower() in ("across", "along", "fixed") for p in props),
+       "every prop names a placement mode the module understands")
+    ok(all(0.0 <= p["min_manning"] <= 1.0 for p in props),
+       "every prop's MinManning is a fraction")
+
+    sides_ok, on_line_ok = 0, 0
+    line_props = [p for p in props if p["forward"] == 0.0]
+    for p in props:
+        for c in crossings:
+            a = border_world.regions[c.a]
+            b = border_world.regions[c.b]
+            at = place(c, p["forward"], p["side"])
+            da = math.hypot(at[0] - a.centroid[0], at[1] - a.centroid[1])
+            db = math.hypot(at[0] - b.centroid[0], at[1] - b.centroid[1])
+            if p["forward"] < 0:
+                sides_ok += 1 if da < db else 0
+            elif p["forward"] > 0:
+                sides_ok += 1 if db < da else 0
+    total_sided = sum(1 for p in props if p["forward"] != 0.0) * len(crossings)
+    ok(sides_ok == total_sided,
+       "every offset prop lands on the side its Forward sign claims (%d/%d)"
+       % (sides_ok, total_sided))
+
+    for p in line_props:
+        for c in crossings:
+            a = border_world.regions[c.a]
+            b = border_world.regions[c.b]
+            at = place(c, p["forward"], p["side"])
+            da = math.hypot(at[0] - a.centroid[0], at[1] - a.centroid[1])
+            db = math.hypot(at[0] - b.centroid[0], at[1] - b.centroid[1])
+            # 5 cm over distances of ~1.5 km is as exact as single-precision
+            # arithmetic on the polygon vertices allows
+            if abs(da - db) < 0.05:
+                on_line_ok += 1
+    ok(on_line_ok == len(line_props) * len(crossings),
+       "props with Forward=0 stay on the border line (%d/%d)"
+       % (on_line_ok, len(line_props) * len(crossings)))
+
+    # the defenders' installations must be behind the line, not in front of it
+    defensive = [p for p in props if p["role"] in ("guardhouse", "barrier")
+                 and p["forward"] != 0.0]
+    ok(bool(defensive) and all(p["forward"] < 0 for p in defensive),
+       "guard huts and the second barrier line are behind the border (%d props)"
+       % len(defensive))
 
     # ... and the border follows the flag: capture a region, the map changes
     before_ids = set(c.id for c in crossings)

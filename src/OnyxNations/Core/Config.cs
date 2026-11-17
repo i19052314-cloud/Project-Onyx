@@ -244,9 +244,22 @@ namespace OnyxNations.Core
     public class BorderPropDef
     {
         [XmlAttribute] public string Model;
-        [XmlAttribute] public float OffsetX;
-        [XmlAttribute] public float OffsetY;
+
+        /// <summary>Metres along the travel direction (region A towards region B).</summary>
+        [XmlAttribute] public float Forward;
+
+        /// <summary>Metres across it, perpendicular to the travel direction.</summary>
+        [XmlAttribute] public float Side;
+
+        /// <summary>Extra rotation in degrees, on top of the mode.</summary>
         [XmlAttribute] public float Heading;
+
+        /// <summary>Across (faces the traveller), Along (parallel to the border), Fixed.</summary>
+        [XmlAttribute] public string Mode;
+
+        /// <summary>Crew level below which this prop is not placed.</summary>
+        [XmlAttribute] public float MinManning;
+
         [XmlAttribute] public string Role;
     }
 

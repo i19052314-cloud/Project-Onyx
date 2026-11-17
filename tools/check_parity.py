@@ -259,6 +259,8 @@ FINGERPRINTS = [
     ("Sim/Borders.cs", [
         "Geometry.DistanceToPolygonEdge",
         "SharedEdgeMidpoint(a, b)",
+        "Math.Atan2(x, y) * 180.0 / Math.PI",   # GTA heading convention
+        "crossing.Side = new Vec2(-travel.Y, travel.X)",
     ]),
     ("Sim/Appointments.cs", [
         "candidate.Salary * 30.0",

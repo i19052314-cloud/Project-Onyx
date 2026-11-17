@@ -412,6 +412,38 @@ def main():
     check("guard" in guard_roles, "a peacetime guard model is configured")
     check("guardWar" in guard_roles, "a wartime guard model is configured")
 
+    # The layout is expressed relative to the border, so it must never go back to
+    # world-axis offsets: a hand-placed OffsetX would only be right on one frontier.
+    for p in models.findall("Prop"):
+        check(p.get("OffsetX") is None and p.get("OffsetY") is None,
+              "prop '%s' uses Forward/Side, not world-axis offsets" % p.get("Model"))
+        mode = (p.get("Mode") or "Across").lower()
+        check(mode in ("across", "along", "fixed"),
+              "prop '%s' names a mode the module understands (%s)" % (p.get("Model"), mode))
+        check(0.0 <= float(p.get("MinManning") or 0) <= 1.0,
+              "prop '%s' MinManning is a fraction" % p.get("Model"))
+        check(abs(float(p.get("Forward") or 0)) <= 60.0
+              and abs(float(p.get("Side") or 0)) <= 60.0,
+              "prop '%s' is placed within the checkpoint's footprint" % p.get("Model"))
+
+    # A post is manned by region A's owner, so anything meant to defend it has to
+    # sit at negative Forward. Anything at positive Forward is on the approach
+    # and must not be load-bearing.
+    for p in models.findall("Prop"):
+        role, forward = p.get("Role") or "", float(p.get("Forward") or 0)
+        if role in ("guardhouse", "barrier") and forward != 0.0:
+            check(forward < 0,
+                  "%s '%s' stands on the defenders' side of the line" % (role, p.get("Model")))
+    check(any(p.get("Role") == "gate" for p in models.findall("Prop")),
+          "the layout has a gate")
+    check(any(p.get("Role") == "guardhouse" for p in models.findall("Prop")),
+          "the layout has a guard hut")
+    # the gate itself must be on the line, not behind it
+    for p in models.findall("Prop"):
+        if p.get("Role") == "gate":
+            check(float(p.get("Forward") or 0) == 0.0 and float(p.get("Side") or 0) == 0.0,
+                  "the gate '%s' sits on the crossing point itself" % p.get("Model"))
+
     # an override must name two regions that really are neighbours, or the post
     # hangs in the air
     for ov in borders_root.find("Overrides").findall("Crossing"):

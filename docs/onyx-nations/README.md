@@ -19,8 +19,8 @@
 ```bash
 python3 tools/build_regions.py      # пересобрать Regions.xml + превью карты и проверить геометрию
 python3 tools/sim_reference.py --years 2   # исполняемая эталонная модель механик
-python3 tools/check_parity.py       # не разошлись ли C# и эталонная модель (237 проверок)
-python3 tools/test_world_data.py    # тесты контракта данных и сохранений (779 проверок)
+python3 tools/check_parity.py       # не разошлись ли C# и эталонная модель (239 проверок)
+python3 tools/test_world_data.py    # тесты контракта данных и сохранений (832 проверки)
 python3 tools/check_sources.py      # структурная проверка C# без компилятора
 ```
 

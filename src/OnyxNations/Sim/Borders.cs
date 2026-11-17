@@ -36,6 +36,18 @@ namespace OnyxNations.Sim
         public string Name = "";
         public string NameRu = "";
 
+        /// <summary>Unit vector along the travel direction: region A towards region B.</summary>
+        public Vec2 Forward = new Vec2(0f, 1f);
+
+        /// <summary>Unit vector across it, i.e. parallel to the border line.</summary>
+        public Vec2 Side = new Vec2(1f, 0f);
+
+        /// <summary>Heading in degrees that faces the oncoming traveller (GTA: 0 = north).</summary>
+        public float HeadingAcross;
+
+        /// <summary>Heading in degrees for a prop laid parallel to the border line.</summary>
+        public float HeadingAlong;
+
         /// <summary>0..1 — how well manned the post is. Falls when nothing is garrisoned near it.</summary>
         public float Manning = 0.5f;
 
@@ -134,6 +146,8 @@ namespace OnyxNations.Sim
                                                          (a.Centroid.Y + b.Centroid.Y) * 0.5f);
                     }
 
+                    SetFrame(crossing, a, b);
+
                     BorderCrossing old;
                     if (previous.TryGetValue(id, out old))
                     {
@@ -143,6 +157,78 @@ namespace OnyxNations.Sim
                     _crossings.Add(crossing);
                 }
             }
+        }
+
+        /// <summary>
+        /// Build the local frame a checkpoint is laid out in.
+        ///
+        /// Props are placed relative to the border rather than to the world axes,
+        /// so the same layout reads correctly on a north-south frontier and on an
+        /// east-west one — otherwise every post on the map has to be laid out by
+        /// hand.
+        /// </summary>
+        private static void SetFrame(BorderCrossing crossing, Region a, Region b)
+        {
+            Vec2 travel = new Vec2(b.Centroid.X - a.Centroid.X, b.Centroid.Y - a.Centroid.Y);
+            float length = (float)Math.Sqrt(travel.X * travel.X + travel.Y * travel.Y);
+            if (length < 0.001f)
+            {
+                travel = new Vec2(0f, 1f);
+            }
+            else
+            {
+                travel = new Vec2(travel.X / length, travel.Y / length);
+            }
+
+            crossing.Forward = travel;
+            crossing.Side = new Vec2(-travel.Y, travel.X);
+
+            // GTA heading: 0 = north (+Y), 90 = east (+X), i.e. atan2(X, Y).
+            crossing.HeadingAcross = Degrees(travel.X, travel.Y);
+            crossing.HeadingAlong = Degrees(-travel.Y, travel.X);
+        }
+
+        private static float Degrees(float x, float y)
+        {
+            float deg = (float)(Math.Atan2(x, y) * 180.0 / Math.PI);
+            if (deg < 0f) deg += 360f;
+            return deg;
+        }
+
+        /// <summary>World position of a point given in border-relative metres.</summary>
+        public static Vec2 Place(BorderCrossing crossing, float forward, float side)
+        {
+            return new Vec2(
+                crossing.Position.X + crossing.Forward.X * forward + crossing.Side.X * side,
+                crossing.Position.Y + crossing.Forward.Y * forward + crossing.Side.Y * side);
+        }
+
+        /// <summary>Heading that faces the oncoming traveller, for guards and huts.</summary>
+        public static float HeadingAcross(BorderCrossing crossing)
+        {
+            return crossing.HeadingAcross;
+        }
+
+        /// <summary>Heading for a prop, given its placement mode and its extra rotation.</summary>
+        public static float HeadingFor(BorderCrossing crossing, string mode, float extra)
+        {
+            float baseHeading;
+            if (string.Equals(mode, "Along", StringComparison.OrdinalIgnoreCase))
+            {
+                baseHeading = crossing.HeadingAlong;
+            }
+            else if (string.Equals(mode, "Fixed", StringComparison.OrdinalIgnoreCase))
+            {
+                baseHeading = 0f;
+            }
+            else
+            {
+                baseHeading = crossing.HeadingAcross;
+            }
+            float heading = baseHeading + extra;
+            while (heading < 0f) heading += 360f;
+            while (heading >= 360f) heading -= 360f;
+            return heading;
         }
 
         private static string Key(string a, string b)
