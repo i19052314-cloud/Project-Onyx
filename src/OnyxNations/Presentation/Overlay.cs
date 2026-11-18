@@ -653,6 +653,16 @@ namespace OnyxNations.Presentation
             Row(y, T("Правящая партия", "Ruling party"),
                 RulingPartyName(player), 235, 242, 255);
             y += 0.032f;
+            Row(y, T("Ваша партия", "Your party"), PlayerPartyName(player), 235, 242, 255);
+            y += 0.032f;
+            Row(y, T("Ваш статус", "Your status"),
+                office.PlayerIsPresident
+                    ? T("ПРЕЗИДЕНТ", "PRESIDENT")
+                    : T("в оппозиции", "opposition"),
+                office.PlayerIsPresident ? 150 : 255,
+                office.PlayerIsPresident ? 230 : 190,
+                office.PlayerIsPresident ? 170 : 140);
+            y += 0.032f;
             Row(y, T("Рейтинг", "Approval"),
                 player.Approval.ToString("0", CultureInfo.InvariantCulture), 190, 225, 255);
             y += 0.032f;
@@ -692,18 +702,36 @@ namespace OnyxNations.Presentation
                 y += 0.030f;
             }
 
-            string hint = _sim.CanPlayerRun(player)
-                ? T("ENTER — 5 млн в фонд   SHIFT+ENTER — 1 млн",
-                    "ENTER - $5M into the campaign   SHIFT+ENTER - $1M")
-                : T("Лимит сроков исчерпан — баллотироваться нельзя",
+            string hint;
+            if (!_sim.CanPlayerRun(player))
+            {
+                hint = T("Лимит сроков исчерпан — баллотироваться нельзя",
                     "Term limit reached - you cannot stand again");
+            }
+            else if (office.PlayerIsPresident)
+            {
+                hint = T("ENTER — 5 млн в фонд   SHIFT+ENTER — 1 млн",
+                    "ENTER - $5M into the campaign   SHIFT+ENTER - $1M");
+            }
+            else
+            {
+                hint = T("Вы в оппозиции: ENTER — 5 млн в фонд, выборы вернут пост",
+                    "In opposition: ENTER - $5M into the campaign, the election can win it back");
+            }
             Draw.Text(hint, 0.17f, 0.845f, 0.27f, 140, 156, 190, 255, false, 0f, 0.83f);
         }
 
         private static string RulingPartyName(Nation n)
         {
             Party p = n.RulingParty;
-            return p != null ? p.NameRu : "-";
+            return p != null ? (string.IsNullOrEmpty(p.NameRu) ? p.Name : p.NameRu) : "-";
+        }
+
+        /// <summary>The party the player leads - the one that puts him in office.</summary>
+        private string PlayerPartyName(Nation n)
+        {
+            Party p = n.PartyById(n.Office.PlayerPartyId);
+            return p != null ? p.DisplayName(_russian) : T("нет (независимый)", "none (independent)");
         }
 
         // --------------------------------------------------- government screen
