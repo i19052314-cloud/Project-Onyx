@@ -210,8 +210,6 @@ copy /y "%SRCDATA%\*.xml" "%GTA%\OnyxNations\Data" >nul
 if errorlevel 1 set "FAIL=1"
 copy /y "%SRCINI%" "%GTA%\scripts\OnyxNations.ini" >nul
 if errorlevel 1 set "FAIL=1"
-copy /y "%SRCINI%" "%GTA%\OnyxNations\OnyxNations.ini" >nul
-if errorlevel 1 set "FAIL=1"
 copy /y "%DLLSRC%" "%GTA%\scripts\OnyxNations.dll" >nul
 if errorlevel 1 set "FAIL=1"
 if "%FAIL%"=="1" goto :copy_failed
@@ -220,6 +218,16 @@ echo      [ok]   scripts\OnyxNations.dll
 echo      [ok]   scripts\OnyxNations.ini
 echo      [ok]   OnyxNations\Data\*.xml
 echo.
+
+rem The module reads ONLY <GTA>\scripts\OnyxNations.ini. Earlier versions also
+rem dropped a second copy into <GTA>\OnyxNations\ - editing that one changed
+rem nothing, which cost the user an evening. It is backed up above, so removing
+rem it here is safe and stops the confusion from coming back.
+if exist "%GTA%\OnyxNations\OnyxNations.ini" (
+  del /f /q "%GTA%\OnyxNations\OnyxNations.ini" >nul 2>&1
+  echo      [note] removed the unused OnyxNations\OnyxNations.ini copy
+  echo.
+)
 
 rem --- 8. verify -------------------------------------------------------------
 echo    Verifying ...

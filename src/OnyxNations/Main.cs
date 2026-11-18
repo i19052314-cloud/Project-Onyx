@@ -76,21 +76,34 @@ namespace OnyxNations
             Paths.EnsureDirectories();
 
             IniFile ini = new IniFile(Paths.IniFile);
-            // Fully qualified on purpose: GTA.Script (our base class) already has a
-            // 'Settings' member of type GTA.ScriptSettings, so the bare name here
-            // binds to that and the compiler tries ScriptSettings.Load(string)
-            // with our IniFile. CS1502/CS1503 in one line.
-            _settings = OnyxNations.Core.Settings.Load(ini);
+            // global:: on purpose. GTA.Script (our base class) has a 'Settings'
+            // member of type GTA.ScriptSettings, so a bare name here binds to that
+            // and the compiler tries ScriptSettings.Load(string) with our IniFile
+            // (CS1502/CS1503). And the type itself sits in the ROOT namespace
+            // OnyxNations even though the file is under Core/ - so the fully
+            // qualified name is OnyxNations.Settings, not OnyxNations.Core.Settings.
+            _settings = global::OnyxNations.Settings.Load(ini);
 
             Log.Init(Paths.LogFile, _settings.Logging, _settings.LogLevel);
             Log.Info("=== ONYX RP: NATIONS & WAR - companion starting ===");
             Log.Info("assembly dir : {0}", Paths.AssemblyDir);
+            // One ini and one ini only: <GTA>\scripts\OnyxNations.ini. The path is
+            // logged because editing a copy somewhere else silently does nothing.
+            Log.Info("ini          : {0} (exists: {1})", Paths.IniFile, ini.Exists);
             Log.Info("game root    : {0}", Paths.GameRoot ?? "(not resolved)");
             Log.Info("module dir   : {0}", Paths.ModuleDir);
             Log.Info("data dir     : {0} (exists: {1})", Paths.DataDir, Directory.Exists(Paths.DataDir));
             if (!ini.Exists)
             {
                 Log.Warn("no OnyxNations.ini beside the DLL - using built-in defaults");
+                // The trap that cost an evening: older builds left a second copy in
+                // <GTA>\OnyxNations\. Editing that one changes nothing.
+                string legacy = Path.Combine(Paths.ModuleDir, "OnyxNations.ini");
+                if (File.Exists(legacy))
+                {
+                    Log.Warn("found {0} - that file is NOT read; put your settings in {1}",
+                        legacy, Paths.IniFile);
+                }
             }
 
             if (!_settings.Enabled)
