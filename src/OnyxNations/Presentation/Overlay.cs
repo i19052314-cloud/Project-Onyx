@@ -130,7 +130,9 @@ namespace OnyxNations.Presentation
                             "Term limit: you cannot stand again"), 2800);
                         break;
                     }
-                    if (_sim.FundCampaign(player, 5_000_000.0))
+                    // No digit separators: csc.exe from the .NET Framework is a
+                    // C# 5 compiler and would reject 5_000_000.0 outright.
+                    if (_sim.FundCampaign(player, 5000000.0))
                     {
                         ShowToast(T("Фонд кампании: ", "Campaign funds: ") +
                             Num((long)player.Office.CampaignFunds), 2400);

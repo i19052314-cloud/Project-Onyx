@@ -68,6 +68,19 @@ namespace OnyxNations.Sim
         [DataMember(Name = "PlayerIsPresident")] public bool PlayerIsPresident;
         [DataMember(Name = "DaysInTerm")] public int DaysInTerm;
         [DataMember(Name = "TermsServed")] public int TermsServed;
+
+        // ---- the presidency, as World.cs writes it --------------------------
+        // These seven were read and written by World.Save/Load but never
+        // declared here, so the compiler rejected the save and the election
+        // state was silently lost on reload. Names match the DataMembers
+        // above: the XML on disk stays readable by older saves.
+        [DataMember(Name = "RulingParty")] public string RulingParty;
+        [DataMember(Name = "IncumbentName")] public string IncumbentName;
+        [DataMember(Name = "CampaignDays")] public int CampaignDays;
+        [DataMember(Name = "CampaignFunds")] public float CampaignFunds;
+        [DataMember(Name = "ChallengerFunds")] public double ChallengerFunds;
+        [DataMember(Name = "LastTurnout")] public float LastTurnout;
+        [DataMember(Name = "LastWinner")] public string LastWinner;
     }
 
     [DataContract]

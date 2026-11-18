@@ -76,7 +76,11 @@ namespace OnyxNations
             Paths.EnsureDirectories();
 
             IniFile ini = new IniFile(Paths.IniFile);
-            _settings = Settings.Load(ini);
+            // Fully qualified on purpose: GTA.Script (our base class) already has a
+            // 'Settings' member of type GTA.ScriptSettings, so the bare name here
+            // binds to that and the compiler tries ScriptSettings.Load(string)
+            // with our IniFile. CS1502/CS1503 in one line.
+            _settings = OnyxNations.Core.Settings.Load(ini);
 
             Log.Init(Paths.LogFile, _settings.Logging, _settings.LogLevel);
             Log.Info("=== ONYX RP: NATIONS & WAR - companion starting ===");
