@@ -21,7 +21,7 @@ namespace OnyxNations.Presentation
 {
     /// <summary>
     /// Everything the player sees in milestone M1: a small always-on world-status
-    /// panel, the tablet screen (F6) and transient toasts.
+    /// panel, the tablet screen (F8 by default) and transient toasts.
     ///
     /// Drawn with plain natives in the module's own layer: nothing here hooks,
     /// hides or replaces any part of Onyx RP's interface.

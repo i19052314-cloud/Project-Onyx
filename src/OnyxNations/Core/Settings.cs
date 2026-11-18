@@ -40,7 +40,16 @@ namespace OnyxNations
         public int MaxBorderGuards = 8;
 
         // ---- keys -----------------------------------------------------------
-        public WF.Keys TabletKey = WF.Keys.F6;
+        // F8 by default: M is taken by Onyx's own tablet on newer builds, F6 by
+        // other menus, F5 by OnyxAdmin, F4 by the SHVDN console, F7/F9/F10 by Onyx.
+        public WF.Keys TabletKey = WF.Keys.F8;
+
+        // Optional modifiers on the tablet key (Ctrl+Alt+F8 and so on), so any
+        // collision with another mod can be resolved without giving up a key.
+        public bool TabletCtrl;
+        public bool TabletAlt;
+        public bool TabletShift;
+
         public WF.Keys TabNextKey = WF.Keys.Right;
         public WF.Keys TabPrevKey = WF.Keys.Left;
         public WF.Keys ActionKey = WF.Keys.Enter;
@@ -78,6 +87,8 @@ namespace OnyxNations
             s.MaxBorderGuards = ini.GetInt("Borders", "MaxBorderGuards", s.MaxBorderGuards);
 
             s.TabletKey = ini.GetKey("Input", "TabletKey", s.TabletKey);
+            ParseModifiers(ini.Get("Input", "TabletModifiers", ""),
+                out s.TabletCtrl, out s.TabletAlt, out s.TabletShift);
             s.TabNextKey = ini.GetKey("Input", "TabNextKey", s.TabNextKey);
             s.TabPrevKey = ini.GetKey("Input", "TabPrevKey", s.TabPrevKey);
             s.ActionKey = ini.GetKey("Input", "ActionKey", s.ActionKey);
@@ -91,6 +102,32 @@ namespace OnyxNations
             s.DevOrderKey = ini.GetKey("Input", "DevOrderKey", s.DevOrderKey);
 
             return s;
+        }
+
+        /// <summary>
+        /// "Ctrl+Alt", "ctrl alt", "Shift" ... anything else means no modifier.
+        /// Kept tolerant because this is a hand-edited ini: a typo must not stop
+        /// the tablet from opening.
+        /// </summary>
+        private static void ParseModifiers(string value, out bool ctrl, out bool alt, out bool shift)
+        {
+            ctrl = false;
+            alt = false;
+            shift = false;
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            string[] parts = value.Split(new char[] { '+', ',', ' ', ';' },
+                System.StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i].Trim().ToLowerInvariant();
+                if (part == "ctrl" || part == "control") ctrl = true;
+                else if (part == "alt" || part == "menu") alt = true;
+                else if (part == "shift") shift = true;
+            }
         }
     }
 }

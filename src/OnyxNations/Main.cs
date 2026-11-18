@@ -201,6 +201,9 @@ namespace OnyxNations
 
             Log.Info("ready: {0} nations, {1} regions, {2} units, bridge = {3}",
                 _world.Nations.Count, _world.Regions.Count, CountUnits(), _bridge.Name);
+            Log.Info("tablet key: {0}{1}{2}{3}  (change it in OnyxNations.ini)",
+                _settings.TabletCtrl ? "Ctrl+" : "", _settings.TabletAlt ? "Alt+" : "",
+                _settings.TabletShift ? "Shift+" : "", _settings.TabletKey);
             for (int i = 0; i < _world.Nations.Count; i++)
             {
                 Nation n = _world.Nations[i];
@@ -333,7 +336,8 @@ namespace OnyxNations
         // ---------------------------------------------------------------- input
         private void PollInput()
         {
-            if (Keyboard.WasPressed(_settings.TabletKey))
+            if (Keyboard.WasPressedWith(_settings.TabletKey,
+                _settings.TabletCtrl, _settings.TabletAlt, _settings.TabletShift))
             {
                 _overlay.TabletOpen = !_overlay.TabletOpen;
                 Keyboard.Clear();

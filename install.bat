@@ -242,7 +242,7 @@ echo      %GTA%\OnyxNations\onyx-nations.log
 echo    and look for the line:
 echo      ready: 2 nations, 14 regions, 13 units
 echo.
-echo    In game: F6 opens the presidential tablet, Left/Right switch
+echo    In game: F8 opens the presidential tablet, Left/Right switch
 echo    screens, Enter confirms the action on the screen.
 echo.
 if "%BACKED%"=="0" echo    Nothing was overwritten - clean install.
