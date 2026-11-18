@@ -58,8 +58,34 @@ namespace OnyxNations.Core
             DataDir = Path.Combine(ModuleDir, "Data");
             SaveDir = Path.Combine(ModuleDir, "Saves");
             LogFile = Path.Combine(ModuleDir, "onyx-nations.log");
-            IniFile = Path.Combine(AssemblyDir, "OnyxNations.ini");
+            IniFile = ResolveIniFile();
             SaveFile = Path.Combine(SaveDir, "world.json");
+        }
+
+        /// <summary>
+        /// &lt;GTA&gt;\scripts\OnyxNations.ini, and that file only. The assembly
+        /// directory is authoritative when it holds an ini; if the DLL was loaded
+        /// in a way that hides its own path, the documented location under the
+        /// game root is tried instead. The stale copy in &lt;GTA&gt;\OnyxNations\ is
+        /// never read - that trap already cost an evening.
+        /// </summary>
+        private static string ResolveIniFile()
+        {
+            List<string> candidates = new List<string>();
+            candidates.Add(Path.Combine(AssemblyDir, "OnyxNations.ini"));
+            if (GameRoot != null)
+            {
+                candidates.Add(Path.Combine(GameRoot, "scripts", "OnyxNations.ini"));
+            }
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (File.Exists(candidates[i]))
+                {
+                    return candidates[i];
+                }
+            }
+            return candidates[0];
         }
 
         /// <summary>
