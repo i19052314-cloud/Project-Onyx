@@ -99,7 +99,7 @@ set FW=C:\Windows\Microsoft.NET\Framework\v4.0.30319
 Все клавиши меняются в `<GTA>\scripts\OnyxAdmin.ini`.
 
 **Почему F5.** Onyx RP занимает **F9** (включение) и **F10** (настройки),
-модуль `OnyxNations` — **F6**, консоль ScriptHookVDotNet по умолчанию — **F4**.
+модуль `OnyxNations` — **F8**, консоль ScriptHookVDotNet по умолчанию — **F4**.
 F5 свободен.
 
 Клавиши читаются напрямую из Windows (`GetAsyncKeyState`), а не через игровой

@@ -101,7 +101,7 @@ namespace OnyxNations
 
         /// <summary>
         /// Reads a value and parses it as a <see cref="System.Windows.Forms.Keys"/> name
-        /// (F6, NumPad1, ...). Falls back when the name is unknown.
+        /// (F8, NumPad1, ...). Falls back when the name is unknown.
         /// </summary>
         public System.Windows.Forms.Keys GetKey(string section, string key, System.Windows.Forms.Keys fallback)
         {

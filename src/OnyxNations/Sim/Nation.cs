@@ -60,7 +60,12 @@ namespace OnyxNations.Sim
         public string HeadOfStateRu;
         public string Ideology;
         public string IdeologyRu;
-        public double StartingMilitarization;
+        /// <summary>
+        /// Share of the economy the nation keeps under arms, 0..1. Authored in
+        /// Nations.xml, then carried by the simulation. Config.cs assigns it and
+        /// the tablet prints it, so the name must stay 'Militarization'.
+        /// </summary>
+        public double Militarization;
         public int FlagR = 255, FlagG = 255, FlagB = 255;
         public Personality Traits;
 

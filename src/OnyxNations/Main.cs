@@ -76,7 +76,11 @@ namespace OnyxNations
             Paths.EnsureDirectories();
 
             IniFile ini = new IniFile(Paths.IniFile);
-            _settings = Settings.Load(ini);
+            // Fully qualified on purpose: GTA.Script (our base class) already has a
+            // 'Settings' member of type GTA.ScriptSettings, so the bare name here
+            // binds to that and the compiler tries ScriptSettings.Load(string)
+            // with our IniFile. CS1502/CS1503 in one line.
+            _settings = OnyxNations.Core.Settings.Load(ini);
 
             Log.Init(Paths.LogFile, _settings.Logging, _settings.LogLevel);
             Log.Info("=== ONYX RP: NATIONS & WAR - companion starting ===");
@@ -197,6 +201,9 @@ namespace OnyxNations
 
             Log.Info("ready: {0} nations, {1} regions, {2} units, bridge = {3}",
                 _world.Nations.Count, _world.Regions.Count, CountUnits(), _bridge.Name);
+            Log.Info("tablet key: {0}{1}{2}{3}  (change it in OnyxNations.ini)",
+                _settings.TabletCtrl ? "Ctrl+" : "", _settings.TabletAlt ? "Alt+" : "",
+                _settings.TabletShift ? "Shift+" : "", _settings.TabletKey);
             for (int i = 0; i < _world.Nations.Count; i++)
             {
                 Nation n = _world.Nations[i];
@@ -329,7 +336,8 @@ namespace OnyxNations
         // ---------------------------------------------------------------- input
         private void PollInput()
         {
-            if (Keyboard.WasPressed(_settings.TabletKey))
+            if (Keyboard.WasPressedWith(_settings.TabletKey,
+                _settings.TabletCtrl, _settings.TabletAlt, _settings.TabletShift))
             {
                 _overlay.TabletOpen = !_overlay.TabletOpen;
                 Keyboard.Clear();
@@ -340,7 +348,14 @@ namespace OnyxNations
             {
                 if (Keyboard.WasPressed(_settings.TabNextKey)) _overlay.NextTab();
                 if (Keyboard.WasPressed(_settings.TabPrevKey)) _overlay.PreviousTab();
-                if (Keyboard.WasPressed(_settings.ActionKey)) _overlay.Activate(_tracker);
+                if (Keyboard.WasPressed(_settings.CursorUpKey)) _overlay.MoveCursor(-1);
+                if (Keyboard.WasPressed(_settings.CursorDownKey)) _overlay.MoveCursor(1);
+                // Shift is the second verb of the same key: appoint / dismiss,
+                // raise / lower, fund more / fund less.
+                if (Keyboard.WasPressed(_settings.ActionKey))
+                {
+                    _overlay.Activate(_tracker, Keyboard.ShiftHeld());
+                }
             }
 
             if (!_settings.DevTools) return;

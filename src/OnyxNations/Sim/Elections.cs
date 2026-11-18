@@ -95,7 +95,11 @@ namespace OnyxNations.Sim
             }
 
             // Money buys attention: up to +8 points, with diminishing returns.
-            double funds = incumbent ? n.Office.CampaignFunds : n.Office.ChallengerFunds;
+            // The player's war chest is his party's, whether it is in office or in
+            // opposition; every other party shares the challengers' pot.
+            double funds = string.Equals(party.Id, n.Office.PlayerPartyId, StringComparison.Ordinal)
+                ? n.Office.CampaignFunds
+                : n.Office.ChallengerFunds;
             double cashTerm = 0.08 * (funds / (funds + 500000.0));
             share += (float)cashTerm;
 
@@ -181,7 +185,13 @@ namespace OnyxNations.Sim
             Party winner = n.PartyById(result.WinnerPartyId);
             Party previous = n.PartyById(office.RulingPartyId);
 
-            bool playerLost = office.PlayerIsPresident && !result.IncumbentWon;
+            bool wasPresident = office.PlayerIsPresident;
+            int maxTerms = Rules.MaxTerms > 0 ? Rules.MaxTerms : 2;
+            // Eligibility is judged on the term that just ended, before the counter
+            // moves: a president finishing his second term cannot stand again, and
+            // his party runs a successor in his place.
+            bool playerEligible = !office.TermLimited(maxTerms);
+
             string winnerName = winner != null ? winner.NameRu : "?";
 
             office.RulingPartyId = result.WinnerPartyId;
@@ -193,9 +203,24 @@ namespace OnyxNations.Sim
             office.CampaignFunds = 0f;
             office.ChallengerFunds = 0.0;
 
-            if (playerLost)
+            // The office follows the party the player leads: winning the country
+            // with it puts the player in the chair, losing with it takes him out,
+            // and a term-limited president hands over even if his party wins.
+            bool playerPartyWon = winner != null &&
+                string.Equals(winner.Id, office.PlayerPartyId, StringComparison.Ordinal);
+            office.PlayerIsPresident = playerPartyWon && playerEligible;
+
+            if (office.PlayerIsPresident)
             {
-                office.PlayerIsPresident = false;
+                office.IncumbentName = winner != null && !string.IsNullOrEmpty(winner.Name)
+                    ? winner.Name
+                    : office.IncumbentName;
+                Log("ВЫБОРЫ: " + n.DisplayShort(true) + " — победа «" + winnerName +
+                    "», явка " + (result.Turnout * 100f).ToString("0") +
+                    "%. ВЫ ИЗБРАНЫ ПРЕЗИДЕНТОМ.");
+            }
+            else if (wasPresident)
+            {
                 office.IncumbentName = winner != null ? winner.Name : "";
                 Log("ВЫБОРЫ: " + n.DisplayShort(true) + " — победа «" + winnerName +
                     "», явка " + (result.Turnout * 100f).ToString("0") + "%. Президент потерял пост.");
@@ -239,7 +264,11 @@ namespace OnyxNations.Sim
         /// </summary>
         public bool CanPlayerRun(Nation n)
         {
-            if (n == null || !n.Office.PlayerIsPresident) return false;
+            if (n == null || string.IsNullOrEmpty(n.Office.PlayerPartyId)) return false;
+            // Out of office there is no term to be limited by: the leader of the
+            // opposition can always stand, and winning the next election is how the
+            // presidency is won back.
+            if (!n.Office.PlayerIsPresident) return true;
             int max = Rules.MaxTerms > 0 ? Rules.MaxTerms : 2;
             return !n.Office.TermLimited(max);
         }

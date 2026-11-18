@@ -45,7 +45,7 @@ python3 tools/check_sources.py      # структурная проверка C#
 2. Открыть `src/OnyxNations/OnyxNations.csproj` в Visual Studio, собрать Release.
 3. `OnyxNations.dll` → в `<GTA>\scripts\`, `OnyxNations.ini` → туда же,
    папку `OnyxNations/` → в корень игры (рядом с `ProjectOnyx/`).
-4. В игре: `F6` — планшет (7 экранов, переключение `←` `→`, действие `Enter`),
+4. В игре: `F8` — планшет (7 экранов, переключение `←` `→`, выбор `↑` `↓`, действие `Enter`),
    `NumPad1/2` — передать регион государству (dev), `NumPad7/8` — война / мир,
    `NumPad9` — приказ частям, `NumPad0` — сохранить.
 5. Проверить `<GTA>\OnyxNations\onyx-nations.log`: строка `ready: 2 nations, 14 regions`

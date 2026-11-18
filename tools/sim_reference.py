@@ -487,8 +487,14 @@ def pascal(snake):
     return "".join(part[:1].upper() + part[1:] for part in snake.split("_"))
 
 
-def office_funds(n, incumbent):
-    return n.office.campaign_funds if incumbent else n.office.challenger_funds
+def office_funds(n, incumbent, party=None):
+    """The player's war chest belongs to the player's party, in office or not.
+
+    Mirrors Elections.cs: everyone else shares the challengers' pot.
+    """
+    if party is not None and party.id == n.office.player_party_id:
+        return n.office.campaign_funds
+    return n.office.challenger_funds
 
 
 class Presidency(object):
@@ -799,7 +805,7 @@ class Simulation(object):
         else:
             share += record * 0.35
 
-        funds = office_funds(n, incumbent)
+        funds = office_funds(n, incumbent, party)
         share += 0.08 * (funds / (funds + 500000.0))
         share -= abs(party.tax_bias) * 0.10
         return max(0.01, share)
@@ -845,7 +851,10 @@ class Simulation(object):
         office = n.office
         winner = n.party_by_id(result["winner"])
         previous = n.party_by_id(office.ruling_party_id)
-        player_lost = office.player_is_president and not result["incumbent_won"]
+        was_president = office.player_is_president
+        # Eligibility is judged on the term that just ended, before the counter
+        # moves - the same order Elections.cs uses.
+        player_eligible = office.terms_served < self.rules["max_terms"]
 
         office.ruling_party_id = result["winner"]
         office.last_winner = result["winner"]
@@ -856,8 +865,15 @@ class Simulation(object):
         office.campaign_funds = 0.0
         office.challenger_funds = 0.0
 
-        if player_lost:
-            office.player_is_president = False
+        player_party_won = winner is not None and winner.id == office.player_party_id
+        office.player_is_president = player_party_won and player_eligible
+
+        if office.player_is_president:
+            if winner is not None and winner.name:
+                office.incumbent_name = winner.name
+            self.log("ВЫБОРЫ: %s — победа «%s», явка %.0f%%. Игрок избран президентом."
+                     % (n.name, winner.name if winner else "?", result["turnout"] * 100))
+        elif was_president:
             office.incumbent_name = winner.name if winner else ""
             self.log("ВЫБОРЫ: %s — победа «%s», явка %.0f%%. Пост потерян."
                      % (n.name, winner.name if winner else "?", result["turnout"] * 100))
@@ -881,7 +897,12 @@ class Simulation(object):
         return True
 
     def can_player_run(self, n):
-        return n.office.player_is_president and n.office.terms_served < self.rules["max_terms"]
+        if not n.office.player_party_id:
+            return False
+        # Out of office there is no term to be limited by (Elections.cs).
+        if not n.office.player_is_president:
+            return True
+        return n.office.terms_served < self.rules["max_terms"]
 
     # -------------------------------------------------------------- borders --
     def step_borders(self):
@@ -1632,6 +1653,21 @@ def main():
        "a failing government is voted out (%s -> %s)" % (ruling_before, result["winner"]))
     ok(nr.office.ruling_party_id == result["winner"], "the winner takes office")
     ok(not nr.office.player_is_president, "the player loses the post on defeat")
+    ok(nr.office.player_party_id and loser.can_player_run(nr),
+       "an opposition leader can stand for election again")
+
+    # ... and winning with the player's party really puts the player back in office
+    comeback = build_demo(13)
+    cr = comeback.nation("rsa")
+    cr.office.player_is_president = False          # voted out, now in opposition
+    for p in cr.parties:                            # make the player's party favourite
+        p.popularity = 0.55 if p.id == cr.office.player_party_id else 0.10
+    cr.approval, cr.morale, cr.unemployment, cr.inflation = 50.0, 0.60, 0.06, 0.03
+    cr.office.campaign_funds = 4_000_000.0
+    win = comeback.run_election(cr)
+    ok(win["winner"] == cr.office.player_party_id, "the player's party can win an election")
+    comeback.apply_result(cr, win)
+    ok(cr.office.player_is_president, "winning with the player's party returns the presidency")
     winner_party = nr.party_by_id(result["winner"])
     expected_tax = clamp(0.24 + winner_party.tax_bias, 0.05, 0.60)
     ok(abs(nr.tax_rate - tax_before) > 1e-6
