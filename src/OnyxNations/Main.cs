@@ -8,7 +8,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 using GTA;
 using OnyxNations.Bridge;
 using OnyxNations.Core;
@@ -47,14 +49,19 @@ namespace OnyxNations
 
         public OnyxNationsMain()
         {
+            // Logging first, before anything that can throw. Log.Init used to run
+            // in the middle of Boot(), so an exception thrown earlier landed in the
+            // catch below and was written nowhere: SHVDN still printed "Started
+            // script" while the module had no log, no Saves folder and no tablet.
+            StartProvisionalLog();
             try
             {
                 Boot();
             }
             catch (Exception ex)
             {
-                Log.Exception("OnyxNations boot", ex);
                 _ready = false;
+                ReportBootFailure(ex);
             }
 
             if (_ready)
@@ -69,13 +76,119 @@ namespace OnyxNations
             }
         }
 
+        // ------------------------------------------------------------ boot trace
+        // A second, dumber log that does not depend on Log being alive. It answers
+        // one question - "how far did boot get before it died?" - and it is written
+        // next to the DLL so the path never changes:
+        //   <GTA>\scripts\onyx-nations-boot.log
+        private const string BootTraceName = "onyx-nations-boot.log";
+
+        private static string DllDirectory()
+        {
+            try
+            {
+                string location = Assembly.GetExecutingAssembly().Location;
+                if (!string.IsNullOrEmpty(location))
+                {
+                    string dir = Path.GetDirectoryName(location);
+                    if (!string.IsNullOrEmpty(dir))
+                    {
+                        return dir;
+                    }
+                }
+            }
+            catch
+            {
+                // ignored: fall through to the app base directory
+            }
+            try
+            {
+                return AppDomain.CurrentDomain.BaseDirectory;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Point the normal log at &lt;GTA&gt;\OnyxNations\onyx-nations.log before
+        /// Paths runs, then write the first breadcrumb. If the ini later says
+        /// Logging=false that is honoured - the breadcrumbs are already on disk.
+        /// </summary>
+        private static void StartProvisionalLog()
+        {
+            string dllDir = DllDirectory();
+            string file = null;
+            if (!string.IsNullOrEmpty(dllDir))
+            {
+                // <GTA>\scripts\OnyxNations.dll -> <GTA>\OnyxNations\onyx-nations.log
+                string parent = Path.GetDirectoryName(dllDir);
+                string moduleDir = string.IsNullOrEmpty(parent)
+                    ? Path.Combine(dllDir, Paths.ModuleFolderName)
+                    : Path.Combine(parent, Paths.ModuleFolderName);
+                file = Path.Combine(moduleDir, "onyx-nations.log");
+            }
+
+            // Level 3 until the ini is read: a boot problem must never be filtered.
+            Log.Init(file, true, 3);
+            Trace("constructor entered (dll dir: " + (dllDir ?? "(unknown)") + ")", true);
+        }
+
+        private static void Trace(string message, bool restart)
+        {
+            Log.Info("boot: {0}", message);
+            try
+            {
+                string dir = DllDirectory();
+                if (string.IsNullOrEmpty(dir))
+                {
+                    return;
+                }
+
+                string path = Path.Combine(dir, BootTraceName);
+                string line = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture)
+                              + "  " + message + Environment.NewLine;
+                if (restart && File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+                File.AppendAllText(path, line);
+            }
+            catch
+            {
+                // ignored: the trace must never be the reason boot fails
+            }
+        }
+
+        private void ReportBootFailure(Exception ex)
+        {
+            // Never silent again: the log, the breadcrumb file and a line on screen.
+            Log.Exception("OnyxNations boot", ex);
+            Trace("BOOT FAILED: " + ex, false);
+            try
+            {
+                Notification.Show("~r~OnyxNations: boot failed~s~ " + ex.GetType().Name +
+                                  " - see scripts\\" + BootTraceName);
+            }
+            catch
+            {
+                // ignored: a notification failure must not mask the real error
+            }
+        }
+
         // ----------------------------------------------------------------- boot
         private void Boot()
         {
+            Trace("Paths.Init()", false);
             Paths.Init();
+            Trace("assembly dir : " + Paths.AssemblyDir, false);
+            Trace("game root    : " + (Paths.GameRoot ?? "(not resolved)"), false);
+            Trace("module dir   : " + Paths.ModuleDir, false);
             Paths.EnsureDirectories();
 
             IniFile ini = new IniFile(Paths.IniFile);
+            Trace("ini          : " + Paths.IniFile + " (exists: " + ini.Exists + ")", false);
             // global:: on purpose. GTA.Script (our base class) has a 'Settings'
             // member of type GTA.ScriptSettings, so a bare name here binds to that
             // and the compiler tries ScriptSettings.Load(string) with our IniFile
@@ -83,7 +196,12 @@ namespace OnyxNations
             // OnyxNations even though the file is under Core/ - so the fully
             // qualified name is OnyxNations.Settings, not OnyxNations.Core.Settings.
             _settings = global::OnyxNations.Settings.Load(ini);
+            Trace("settings     : tablet key " + _settings.TabletKey.ToString() + ", enabled " +
+                  _settings.Enabled + ", logging " + _settings.Logging, false);
 
+            // Now that the ini is read, the authoritative path and the file's own
+            // Logging/LogLevel apply. Same file as the provisional init above, so
+            // nothing written so far is lost.
             Log.Init(Paths.LogFile, _settings.Logging, _settings.LogLevel);
             Log.Info("=== ONYX RP: NATIONS & WAR - companion starting ===");
             Log.Info("assembly dir : {0}", Paths.AssemblyDir);
@@ -109,6 +227,7 @@ namespace OnyxNations
             if (!_settings.Enabled)
             {
                 Log.Info("Enabled=false in the ini - nothing is loaded");
+                Trace("boot stopped: Enabled=false", false);
                 return;
             }
 
@@ -134,6 +253,7 @@ namespace OnyxNations
             if (missing)
             {
                 Log.Error("copy the OnyxNations folder into the GTA folder, next to ProjectOnyx\\");
+                Trace("boot stopped: Data xml missing in " + Paths.DataDir, false);
                 return;
             }
 
@@ -155,6 +275,7 @@ namespace OnyxNations
             if (problems.Count > 0)
             {
                 Log.Error("{0} config problem(s) - the module stays idle until they are fixed", problems.Count);
+                Trace("boot stopped: " + problems.Count + " config problem(s)", false);
                 return;
             }
 
@@ -171,6 +292,7 @@ namespace OnyxNations
                 {
                     Log.Error("the existing save could not be read and no backup parsed - " +
                               "leaving the configured world untouched; move the file aside to start over");
+                    Trace("boot stopped: unreadable save " + Paths.SaveFile, false);
                     return;
                 }
                 List<string> skipped = _world.ApplySave(save, _unitTypes);
@@ -226,6 +348,8 @@ namespace OnyxNations
             }
 
             _ready = true;
+            Trace("ready: " + _world.Nations.Count + " nations, " + _world.Regions.Count +
+                  " regions, tablet key " + _settings.TabletKey.ToString(), false);
         }
 
         private int CountUnits()

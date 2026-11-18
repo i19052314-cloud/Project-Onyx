@@ -416,7 +416,7 @@ ready: 2 nations, 14 regions, 13 units, bridge = null (self-contained)
 
 | В логе / на экране | Причина | Лечение |
 |---|---|---|
-| Лога нет вообще | скрипт не загрузился | проверить, что `OnyxNations.dll` в `scripts\`; проверить ScriptHookV и SHVDN |
+| Лога нет вообще | скрипт не загрузился или упал раньше первого `Log.Info` | смотреть `scripts\onyx-nations-boot.log` — раздел 7.1 |
 | `missing config: ...\OnyxNations\Data\...` | папку данных положили не туда | шаг 4.2: нужна `<GTA>\OnyxNations\Data\` |
 | `copy the OnyxNations folder into the GTA folder` | то же самое | шаг 4.2 |
 | `Enabled=false in the ini - nothing is loaded` | выключено в настройках | в `OnyxNations.ini` поставить `Enabled=true` |
@@ -425,6 +425,36 @@ ready: 2 nations, 14 regions, 13 units, bridge = null (self-contained)
 | Планшет открывается, но вместо текста — квадраты | кириллица не в шрифте | в ini: `Language=en` |
 | Скрипт грузится, но Onyx перестал работать | — | **невозможно по конструкции**: модуль не вызывает Onyx и не трогает его файлы. Проверьте, не задели ли вы что-то в `ProjectOnyx\` |
 | Игра вылетает при старте | возможен конфликт версии SHVDN | проверить, что SHVDN именно Legacy 3.6/3.7 |
+
+### 7.1. Лога нет вообще: `scripts\onyx-nations-boot.log`
+
+Рядом с DLL лежит второй, «аварийный» файл. Он пишется даже тогда, когда обычный
+лог записать не удалось: нет прав на папку, путь считается неверно, исключение
+случилось до `Log.Init`. Каждый запуск игры файл перезаписывается заново, так что
+в нём всегда последняя попытка.
+
+```
+2026-11-17 21:04:11.882  constructor entered (dll dir: E:\gome\...\scripts)
+2026-11-17 21:04:11.884  Paths.Init()
+2026-11-17 21:04:11.886  assembly dir : E:\gome\...\scripts
+2026-11-17 21:04:11.886  game root    : E:\gome\Grand Theft Auto V Legacy (2015) Portable by Canek77
+2026-11-17 21:04:11.887  module dir   : E:\gome\...\OnyxNations
+2026-11-17 21:04:11.888  ini          : E:\gome\...\scripts\OnyxNations.ini (exists: True)
+2026-11-17 21:04:11.890  settings     : tablet key F12, enabled True, logging True
+2026-11-17 21:04:12.310  ready: 2 nations, 26 regions, tablet key F12
+```
+
+Как читать:
+
+| Последняя строка | Что значит |
+|---|---|
+| `constructor entered`, дальше ничего | упало на `Paths.Init()` — путь к DLL/игре не разобрался |
+| `ini ... (exists: False)` | ini лежит не в `scripts\` — мод работает на встроенных значениях (F8) |
+| `settings : tablet key F8` при вашем `F12` | читается другой ini, или имя клавиши не распознано |
+| `BOOT FAILED: ...` | полный текст исключения; строки выше говорят, на каком шаге |
+| файла нет совсем | DLL не загружалась вообще — проверьте ScriptHookV и SHVDN |
+
+Присылать нужно оба файла: `onyx-nations.log` и `onyx-nations-boot.log`.
 
 **Если ничего не помогло** — пришлите мне файл `onyx-nations.log` целиком. Он
 написан так, чтобы отвечать на вопрос «почему не работает» без доступа к вашему
