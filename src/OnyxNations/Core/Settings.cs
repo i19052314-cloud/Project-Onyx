@@ -44,6 +44,8 @@ namespace OnyxNations
         public WF.Keys TabNextKey = WF.Keys.Right;
         public WF.Keys TabPrevKey = WF.Keys.Left;
         public WF.Keys ActionKey = WF.Keys.Enter;
+        public WF.Keys CursorUpKey = WF.Keys.Up;
+        public WF.Keys CursorDownKey = WF.Keys.Down;
 
         public WF.Keys DevGiveToRsa = WF.Keys.NumPad1;
         public WF.Keys DevGiveToFzsa = WF.Keys.NumPad2;
@@ -79,6 +81,8 @@ namespace OnyxNations
             s.TabNextKey = ini.GetKey("Input", "TabNextKey", s.TabNextKey);
             s.TabPrevKey = ini.GetKey("Input", "TabPrevKey", s.TabPrevKey);
             s.ActionKey = ini.GetKey("Input", "ActionKey", s.ActionKey);
+            s.CursorUpKey = ini.GetKey("Input", "CursorUpKey", s.CursorUpKey);
+            s.CursorDownKey = ini.GetKey("Input", "CursorDownKey", s.CursorDownKey);
             s.DevGiveToRsa = ini.GetKey("Input", "DevGiveToRsa", s.DevGiveToRsa);
             s.DevGiveToFzsa = ini.GetKey("Input", "DevGiveToFzsa", s.DevGiveToFzsa);
             s.DevSaveNow = ini.GetKey("Input", "DevSaveNow", s.DevSaveNow);

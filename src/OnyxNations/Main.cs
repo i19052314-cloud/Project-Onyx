@@ -344,7 +344,14 @@ namespace OnyxNations
             {
                 if (Keyboard.WasPressed(_settings.TabNextKey)) _overlay.NextTab();
                 if (Keyboard.WasPressed(_settings.TabPrevKey)) _overlay.PreviousTab();
-                if (Keyboard.WasPressed(_settings.ActionKey)) _overlay.Activate(_tracker);
+                if (Keyboard.WasPressed(_settings.CursorUpKey)) _overlay.MoveCursor(-1);
+                if (Keyboard.WasPressed(_settings.CursorDownKey)) _overlay.MoveCursor(1);
+                // Shift is the second verb of the same key: appoint / dismiss,
+                // raise / lower, fund more / fund less.
+                if (Keyboard.WasPressed(_settings.ActionKey))
+                {
+                    _overlay.Activate(_tracker, Keyboard.ShiftHeld());
+                }
             }
 
             if (!_settings.DevTools) return;
