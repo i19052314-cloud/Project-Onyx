@@ -1,0 +1,6 @@
+# Windows batch files must keep CRLF line endings. cmd.exe misparses LF-only
+# .bat files: labels, gotos and multi-line blocks break in subtle ways. -text
+# stops Git from normalising them, so the copy inside a downloaded ZIP still
+# carries the CRLF it was written with.
+*.bat -text
+*.cmd -text
