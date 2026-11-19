@@ -63,6 +63,12 @@ namespace OnyxNations
         public WF.Keys DevPeaceKey = WF.Keys.NumPad8;
         public WF.Keys DevOrderKey = WF.Keys.NumPad9;
 
+        // Dev money: the tablet's economy screen can only move money a nation
+        // already has, so testing a budget, a campaign or a war needs a way to
+        // put money into the treasury while the game is running.
+        public WF.Keys DevMoneyKey = WF.Keys.NumPad3;
+        public double DevMoneyAmount = 1000000.0;
+
         public static Settings Load(IniFile ini)
         {
             Settings s = new Settings();
@@ -100,6 +106,8 @@ namespace OnyxNations
             s.DevWarKey = ini.GetKey("Input", "DevWarKey", s.DevWarKey);
             s.DevPeaceKey = ini.GetKey("Input", "DevPeaceKey", s.DevPeaceKey);
             s.DevOrderKey = ini.GetKey("Input", "DevOrderKey", s.DevOrderKey);
+            s.DevMoneyKey = ini.GetKey("Input", "DevMoneyKey", s.DevMoneyKey);
+            s.DevMoneyAmount = ini.GetDouble("Debug", "DevMoneyAmount", s.DevMoneyAmount);
 
             return s;
         }

@@ -100,6 +100,18 @@ namespace OnyxNations
         }
 
         /// <summary>
+        /// Money and other fractional settings. Invariant culture on purpose: a
+        /// German or Russian locale must not turn "1.5" into 15 or 0.
+        /// </summary>
+        public double GetDouble(string section, string key, double fallback)
+        {
+            string raw = Get(section, key, null);
+            double value;
+            return double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out value) ? value : fallback;
+        }
+
+        /// <summary>
         /// Reads a value and parses it as a <see cref="System.Windows.Forms.Keys"/> name
         /// (F8, NumPad1, ...). Falls back when the name is unknown.
         /// </summary>

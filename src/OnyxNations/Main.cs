@@ -510,6 +510,30 @@ namespace OnyxNations
             else if (Keyboard.WasPressed(_settings.DevWarKey)) ToggleWar();
             else if (Keyboard.WasPressed(_settings.DevPeaceKey)) ProposePeace();
             else if (Keyboard.WasPressed(_settings.DevOrderKey)) OrderArmyToCurrentRegion();
+            else if (Keyboard.WasPressed(_settings.DevMoneyKey)) AddTreasury();
+        }
+
+        /// <summary>
+        /// Dev money for the nation the player leads. Negative DevMoneyAmount
+        /// takes money away, which is how a bailout is undone after a test.
+        /// </summary>
+        private void AddTreasury()
+        {
+            Nation player = _world.NationById(_settings.PlayerNationId);
+            if (player == null)
+            {
+                _overlay.ShowToast("dev: nation '" + _settings.PlayerNationId + "' not found", 2600);
+                return;
+            }
+
+            double amount = _settings.DevMoneyAmount;
+            player.Treasury += amount;
+            Log.Info("dev: treasury {0} {1}{2} -> {3:0}", player.Id, amount >= 0 ? "+" : "",
+                amount.ToString("0", CultureInfo.InvariantCulture),
+                player.Treasury);
+            _overlay.ShowToast((_settings.Russian ? "Казна " : "Treasury ") + player.DisplayName(_settings.Russian) +
+                ": " + (amount >= 0 ? "+" : "") + amount.ToString("0", CultureInfo.InvariantCulture) +
+                " (" + player.Treasury.ToString("0", CultureInfo.InvariantCulture) + ")", 2600);
         }
 
         private void OrderArmyToCurrentRegion()
