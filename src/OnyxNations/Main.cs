@@ -168,8 +168,11 @@ namespace OnyxNations
             Trace("BOOT FAILED: " + ex, false);
             try
             {
+                // Two arguments on purpose: Show(string, bool) is the overload that
+                // exists in every SHVDN3 build (3.6 and 3.7). In 3.7 it is marked
+                // obsolete, which is only a warning.
                 Notification.Show("~r~OnyxNations: boot failed~s~ " + ex.GetType().Name +
-                                  " - see scripts\\" + BootTraceName);
+                                  " - see scripts\\" + BootTraceName, false);
             }
             catch
             {
